@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>端游三源数据可视化看板 · 增强版</title>
+<style>
+:root{
+  --blue:#1F4E79; --blue2:#2E75B6; --bg:#F2F6FA; --card:#fff; --line:#E3EAF2;
+  --text:#1F2D3D; --sub:#5B6B7C; --track:#EEF3F9; --hover:#F7FAFE; --head:#F0F5FB;
+  --red:#D64541; --green:#2E9E5B; --amber:#E8A33D;
+}
+[data-theme="dark"]{
+  --blue:#6FA8DC; --blue2:#4A90C4; --bg:#131A24; --card:#1D2734; --line:#2A3645;
+  --text:#DCE6F1; --sub:#8FA3B8; --track:#253244; --hover:#223044; --head:#1B2532;
+  --red:#E57368; --green:#57C07A; --amber:#EFB95B;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"Microsoft YaHei","PingFang SC",sans-serif;background:var(--bg);color:var(--text);padding:24px;transition:background .2s;}
+.header{background:linear-gradient(135deg,#1F4E79 0%,#2E75B6 100%);border-radius:14px;padding:26px 30px;color:#fff;margin-bottom:20px;position:relative;}
+.header h1{font-size:24px;font-weight:700;letter-spacing:1px;}
+.header .sub{margin-top:8px;font-size:13px;opacity:.9;}
+.header .badges{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;}
+.badge{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.3);border-radius:20px;padding:3px 12px;font-size:12px;}
+#themeBtn{position:absolute;top:22px;right:26px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:10px;padding:7px 14px;font-size:13px;cursor:pointer;}
+#themeBtn:hover{background:rgba(255,255,255,.3);}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:20px;}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:0 1px 3px rgba(31,78,121,.06);}
+.kpi .label{font-size:12px;color:var(--sub);}
+.kpi .value{font-size:23px;font-weight:700;color:var(--blue);margin-top:6px;word-break:break-all;}
+.kpi .note{font-size:11px;color:var(--sub);margin-top:4px;}
+.charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:20px;}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 1px 3px rgba(31,78,121,.06);}
+.card h3{font-size:15px;color:var(--blue);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.card h3 .tag{font-size:11px;background:var(--head);color:var(--blue2);border-radius:10px;padding:2px 8px;font-weight:400;}
+.bar-row{display:flex;align-items:center;margin-bottom:7px;font-size:12px;}
+.bar-name{width:118px;text-align:right;padding-right:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.bar-track{flex:1;background:var(--track);border-radius:6px;height:18px;position:relative;overflow:hidden;}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,#2E75B6,#4A90C4);min-width:2px;}
+.bar-val{width:88px;padding-left:8px;color:var(--sub);white-space:nowrap;flex-shrink:0;}
+.bar-val b{color:var(--blue);font-weight:600;}
+.pie-wrap{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.pie{width:150px;height:150px;border-radius:50%;background:conic-gradient(#2E75B6 0.0deg 60.0deg,#D64541 60.0deg 120.0deg,#2E9E5B 120.0deg 180.0deg,#E8A33D 180.0deg 240.0deg,#7B68EE 240.0deg 282.0deg,#3BBDBD 282.0deg 318.0deg,#C94F9C 318.0deg 336.0deg,#8A9BA8 336.0deg 354.0deg,#5B6B7C 354.0deg 360.0deg);position:relative;flex-shrink:0;}
+.pie::after{content:"";position:absolute;inset:34px;background:var(--card);border-radius:50%;}
+.legend2{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--sub);}
+.legend2 span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block;flex-shrink:0;}
+.bar2-row{display:flex;align-items:center;margin-bottom:9px;font-size:12px;gap:8px;}
+.bar2-name{width:104px;text-align:right;padding-right:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.bar2-pair{flex:1;display:flex;gap:10px;min-width:0;}
+.bar2-col{flex:1;display:flex;flex-direction:column;gap:2px;min-width:0;}
+.bar2-track{height:16px;background:var(--track);border-radius:4px;overflow:hidden;}
+.bar2-fill{height:100%;border-radius:4px;min-width:1px;transition:width .3s;}
+.bar2-fill.g7{background:#7EA8CC;}
+.bar2-fill.g8{background:#2E75B6;}
+.bar2-num{font-size:10.5px;color:var(--sub);text-align:center;font-variant-numeric:tabular-nums;}
+.bar2-delta{width:76px;text-align:center;font-weight:600;flex-shrink:0;font-size:11.5px;}
+.bar2-delta.up{color:var(--red);}
+.bar2-delta.down{color:var(--green);}
+.bar2-legend{font-size:11.5px;color:var(--sub);margin-bottom:8px;display:flex;gap:14px;}
+.bar2-legend .up{color:var(--red);font-weight:600;}
+.bar2-legend .down{color:var(--green);font-weight:600;}
+.table-card{margin-bottom:20px;}
+.controls{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.controls input[type=text]{flex:1;min-width:200px;padding:8px 12px;border:1px solid var(--line);border-radius:8px;font-size:13px;outline:none;background:var(--card);color:var(--text);}
+.controls input:focus{border-color:var(--blue2);}
+.controls select{padding:8px 10px;border:1px solid var(--line);border-radius:8px;font-size:13px;background:var(--card);color:var(--text);}
+.tab-bar{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.tab-btn{padding:8px 18px;border-radius:8px;border:1px solid var(--line);background:var(--card);font-size:13px;cursor:pointer;color:var(--sub);transition:all .15s;}
+.tab-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.tbl-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12.5px;background:var(--card);}
+th{background:var(--head);color:var(--blue);padding:9px 10px;text-align:left;border-bottom:2px solid var(--line);white-space:nowrap;cursor:pointer;user-select:none;position:sticky;top:0;}
+th:hover{background:var(--track);}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle;color:var(--text);}
+tr:hover td{background:var(--hover);}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+.ok{color:var(--green);font-weight:700;}
+.no{color:var(--sub);}
+.hot{color:var(--red);font-weight:600;}
+.warm{color:var(--amber);font-weight:600;}
+.good{color:var(--green);font-weight:600;}
+.ind{background:var(--track);color:var(--green);border-radius:8px;padding:2px 8px;font-size:11px;white-space:nowrap;}
+.big{background:var(--track);color:var(--red);border-radius:8px;padding:2px 8px;font-size:11px;white-space:nowrap;}
+.cat-tag{background:var(--track);color:var(--blue2);border-radius:8px;padding:2px 8px;font-size:11px;white-space:nowrap;}
+.cfg{font-size:11px;color:var(--sub);line-height:1.5;}
+.footer{margin-top:20px;color:var(--sub);font-size:11.5px;line-height:1.8;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 20px;}
+.scroll-hint{font-size:11px;color:var(--sub);margin-bottom:6px;}
+.legend{display:flex;gap:14px;font-size:11.5px;color:var(--sub);margin-bottom:8px;flex-wrap:wrap;}
+.legend span{display:inline-flex;align-items:center;gap:5px;}
+</style>
+</head>
+<body data-theme="light">
+
+<div class="header">
+  <button id="themeBtn">🌓 切换深/浅色</button>
+  <h1>🎮 端游三源数据可视化看板</h1>
+  <div class="sub">分析时段：2026-07-01 至 2026-08-24 ｜ 数据源：① 搜索关键词（SensorsAnalytics）② 鲸云平台 ③ SteamDB（8/25 实时）</div>
+  <div class="badges">
+    <span class="badge">搜索总量 6,450 万次</span>
+    <span class="badge">端游相关 1,151 万次（17.8%）</span>
+    <span class="badge">覆盖端游 103 款</span>
+    <span class="badge">Steam 采集 60 款</span>
+    <span class="badge">鲸云在架 20 款</span>
+    <span class="badge">近一年新游 12 款</span>
+  </div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">🔥 暑期最大黑马</div><div class="value">机械狂欢</div><div class="note">7/30 Steam 上线 · 两周破百万销量 · 搜索 +67.9倍</div></div>
+  <div class="kpi"><div class="label">🎬 IP 联动爆火</div><div class="value">蜘蛛侠系列</div><div class="note">电影《英雄新纪元》带动 · 搜索 +18.5倍</div></div>
+  <div class="kpi"><div class="label">🎣 本周新游之最</div><div class="value">How to Fish</div><div class="note">8/20 上线 · 首周峰值 34.2 万 · 当前 13.6 万在线</div></div>
+  <div class="kpi"><div class="label">🏆 Steam 在线 No.1</div><div class="value">CS2 52.1万</div><div class="note">DOTA2 42.8万 · PUBG 15.6万（网游已排除）</div></div>
+  <div class="kpi"><div class="label">📈 搜索新爆词</div><div class="value">战区突围 1060×</div><div class="note">沙堡 625× · 斗帝之路 427× · 亡命飙车 284×</div></div>
+  <div class="kpi"><div class="label">⚠️ 鲸云退潮预警</div><div class="value">变色龙 -65%</div><div class="note">伯吉厨房 -70% · 排水模拟器 -75%</div></div>
+</div>
+
+<div class="charts">
+  <div class="card">
+    <h3>📊 端游搜索 Top 15 <span class="tag">搜索端</span></h3>
+    <div id="chartSearch"></div>
+  </div>
+  <div class="card">
+    <h3>📡 Steam 当前在线 Top 15 <span class="tag">SteamDB 8/25</span></h3>
+    <div id="chartSteam"></div>
+  </div>
+  <div class="card">
+    <h3>🚀 近一年峰值 Top 15 <span class="tag">近一年</span></h3>
+    <div id="chartPeak"></div>
+  </div>
+  <div class="card">
+    <h3>📅 8 月搜索增幅 Top 12 <span class="tag">相对大盘</span></h3>
+    <div id="chartGrowth"></div>
+  </div>
+  <div class="card">
+    <h3>🧩 Steam 品类分布 <span class="tag">60款</span></h3>
+    <div class="pie-wrap">
+      <div class="pie"></div>
+      <div class="legend2"><span><i class="dot" style="background:#2E75B6"></i>合作/派对 10款</span><span><i class="dot" style="background:#D64541"></i>动作/冒险RPG 10款</span><span><i class="dot" style="background:#2E9E5B"></i>策略/经营 10款</span><span><i class="dot" style="background:#E8A33D"></i>生存沙盒 10款</span><span><i class="dot" style="background:#7B68EE"></i>独立/休闲Rogue 7款</span><span><i class="dot" style="background:#3BBDBD"></i>其他 6款</span><span><i class="dot" style="background:#C94F9C"></i>竞速 3款</span><span><i class="dot" style="background:#8A9BA8"></i>模拟 3款</span><span><i class="dot" style="background:#5B6B7C"></i>格斗 1款</span></div>
+    </div>
+  </div>
+  <div class="card">
+    <h3>🔄 7月 vs 8月 搜索量 Top 10 <span class="tag">对比</span></h3>
+    <div class="bar2-legend"><span><i class="dot" style="background:#7EA8CC"></i>7月</span><span><i class="dot" style="background:#2E75B6"></i>8月</span><span class="up">▲ 增长</span><span class="down">▼ 下降</span></div>
+    <div id="chartTrend"><div class="bar2-row"><div class="bar2-name" title="ROBLOX">ROBLOX</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:41.7%"></div></div><div class="bar2-num">232,589</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:24.3%"></div></div><div class="bar2-num">135,440</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -41.8%</div></div><div class="bar2-row"><div class="bar2-name" title="我的世界">我的世界</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:100.0%"></div></div><div class="bar2-num">558,094</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:71.5%"></div></div><div class="bar2-num">399,175</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -28.5%</div></div><div class="bar2-row"><div class="bar2-name" title="植物大战僵尸">植物大战僵尸</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:54.4%"></div></div><div class="bar2-num">303,346</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:60.8%"></div></div><div class="bar2-num">339,423</div></div></div><div class="bar2-delta up" title="8月相对7月变化">▲ +11.9%</div></div><div class="bar2-row"><div class="bar2-name" title="NBA2K">NBA2K</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:6.5%"></div></div><div class="bar2-num">36,215</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:4.3%"></div></div><div class="bar2-num">23,807</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -34.3%</div></div><div class="bar2-row"><div class="bar2-name" title="欧洲卡车模拟器">欧洲卡车模拟器</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:9.7%"></div></div><div class="bar2-num">54,131</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:7.3%"></div></div><div class="bar2-num">40,481</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -25.2%</div></div><div class="bar2-row"><div class="bar2-name" title="恐怖奶奶">恐怖奶奶</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:20.2%"></div></div><div class="bar2-num">112,651</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:21.2%"></div></div><div class="bar2-num">118,503</div></div></div><div class="bar2-delta up" title="8月相对7月变化">▲ +5.2%</div></div><div class="bar2-row"><div class="bar2-name" title="方舟生存进化">方舟生存进化</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:7.9%"></div></div><div class="bar2-num">44,357</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:6.0%"></div></div><div class="bar2-num">33,384</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -24.7%</div></div><div class="bar2-row"><div class="bar2-name" title="网络天才">网络天才</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:36.0%"></div></div><div class="bar2-num">200,684</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:8.3%"></div></div><div class="bar2-num">46,329</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -76.9%</div></div><div class="bar2-row"><div class="bar2-name" title="诅咒之岛">诅咒之岛</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:28.6%"></div></div><div class="bar2-num">159,723</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:14.8%"></div></div><div class="bar2-num">82,339</div></div></div><div class="bar2-delta down" title="8月相对7月变化">▼ -48.4%</div></div><div class="bar2-row"><div class="bar2-name" title="漫威蜘蛛侠">漫威蜘蛛侠</div><div class="bar2-pair"><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g7" style="width:1.1%"></div></div><div class="bar2-num">6,140</div></div><div class="bar2-col"><div class="bar2-track"><div class="bar2-fill g8" style="width:5.1%"></div></div><div class="bar2-num">28,529</div></div></div><div class="bar2-delta up" title="8月相对7月变化">▲ +364.6%</div></div></div></div>
+  </div>
+</div>
+
+<div class="card table-card">
+  <h3>⭐ 三源关联重点表 <span class="tag">表4 · 核心结论</span></h3>
+  <div class="legend">
+    <span><i class="dot" style="background:#D64541"></i>三源共振爆火</span>
+    <span><i class="dot" style="background:#2E9E5B"></i>Steam 持续热门</span>
+    <span><i class="dot" style="background:#E8A33D"></i>需关注/回落</span>
+  </div>
+  <div class="controls">
+    <input type="text" id="kw4" placeholder="🔍 搜索游戏名 / 玩法标签…">
+  </div>
+  <div class="scroll-hint">← 可左右滚动 →</div>
+  <div class="tbl-wrap"><table id="tbl4"></table></div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="3">③ Steam 源（60款）</button>
+  <button class="tab-btn" data-tab="2">② 鲸云源（20款）</button>
+  <button class="tab-btn" data-tab="1">① 搜索关键词源（60款）</button>
+</div>
+
+<div class="card table-card" id="panel3">
+  <h3>③ Steam 源（近一年口径 · 60 款）<span class="tag">本次更新</span></h3>
+  <div class="controls">
+    <input type="text" id="kw3" placeholder="🔍 搜索游戏名（中/英）/ 开发者 / 标签…">
+    <select id="f3">
+      <option value="">全部游戏</option>
+      <option value="近一年">近一年内上线</option>
+      <option value="独立">仅独立游戏</option>
+      <option value="爆款">在线峰值≥10万</option>
+    </select>
+  </div>
+  <div class="scroll-hint">← 可左右滚动 →</div>
+  <div class="tbl-wrap"><table id="tbl3"></table></div>
+</div>
+
+<div class="card table-card" id="panel2" style="display:none">
+  <h3>② 鲸云源（20 款）<span class="tag">平台数据</span></h3>
+  <div class="controls">
+    <input type="text" id="kw2" placeholder="🔍 搜索游戏名…">
+  </div>
+  <div class="tbl-wrap"><table id="tbl2"></table></div>
+</div>
+
+<div class="card table-card" id="panel1" style="display:none">
+  <h3>① 搜索关键词源（60 款）<span class="tag">7-8月趋势</span></h3>
+  <div class="controls">
+    <input type="text" id="kw1" placeholder="🔍 搜索游戏名…">
+  </div>
+  <div class="tbl-wrap"><table id="tbl1"></table></div>
+</div>
+
+<div class="footer">
+  <b>口径说明：</b><br>
+  ① 搜索关键词源：SensorsAnalytics「搜索按钮点击事件」导出（虚拟演示数据），共 4,999 个关键词 / 6,450 万次；端游相关 492 个关键词 / 1,151 万次（占 17.8%）。<br>
+  ② 鲸云源：鲸云平台 20 款在架游戏（游玩 77,621 人 / 注册 50,665 人），其中 12 款可映射到 Steam。<br>
+  ③ Steam 源：SteamDB 实时爬取（8/25）——在线人数进过前 20 / 上线首周进前 20 / 近一年内上线的非网游游戏，共 60 款；已排除 CS2/DOTA2/PUBG/APEX 等约 35 款网游及 10 个非游戏工具；含玩法标签、独立标注、最低+推荐配置（Steam 官方客服页）、安装大小（SteamDB Depot）。<br>
+  ④ 三源关联重点表：搜索 × 鲸云 × Steam 三源交叉验证的 16 款重点游戏。<br>
+  「8 月相对增幅」= 关键词 8/1 采样日占比 ÷ 7/1 采样日占比（8 月大盘整体 -22%，已剔除大盘影响）。搜索数据为（虚拟）演示数据，趋势方向仅供参考；鲸云与 SteamDB 为真实数据。
+</div>
+
+<script>
+const DATA = {"s1": [{"端游名称(中文)": "ROBLOX", "总搜索次数(7-8月)": "1,449,425", "7月搜索": "232,589", "8月搜索": "135,440", "8月相对增长": "0.6倍", "相关性": "高"}, {"端游名称(中文)": "我的世界", "总搜索次数(7-8月)": "1,245,393", "7月搜索": "558,094", "8月搜索": "399,175", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "植物大战僵尸", "总搜索次数(7-8月)": "1,162,913", "7月搜索": "303,346", "8月搜索": "339,423", "8月相对增长": "1.1倍", "相关性": "高"}, {"端游名称(中文)": "绝地求生PUBG", "总搜索次数(7-8月)": "802,346", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "NBA2K", "总搜索次数(7-8月)": "615,210", "7月搜索": "36,215", "8月搜索": "23,807", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "欧洲卡车模拟器", "总搜索次数(7-8月)": "539,890", "7月搜索": "54,131", "8月搜索": "40,481", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "GTA侠盗猎车手", "总搜索次数(7-8月)": "511,353", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "恐怖奶奶", "总搜索次数(7-8月)": "466,534", "7月搜索": "112,651", "8月搜索": "118,503", "8月相对增长": "1.1倍", "相关性": "中"}, {"端游名称(中文)": "方舟生存进化", "总搜索次数(7-8月)": "308,726", "7月搜索": "44,357", "8月搜索": "33,384", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "网络天才", "总搜索次数(7-8月)": "288,375", "7月搜索": "200,684", "8月搜索": "46,329", "8月相对增长": "0.2倍", "相关性": "高"}, {"端游名称(中文)": "诅咒之岛", "总搜索次数(7-8月)": "273,088", "7月搜索": "159,723", "8月搜索": "82,339", "8月相对增长": "0.5倍", "相关性": "高"}, {"端游名称(中文)": "漫威蜘蛛侠", "总搜索次数(7-8月)": "269,438", "7月搜索": "6,140", "8月搜索": "28,529", "8月相对增长": "4.6倍", "相关性": "高"}, {"端游名称(中文)": "三角洲行动", "总搜索次数(7-8月)": "229,474", "7月搜索": "33,125", "8月搜索": "32,329", "8月相对增长": "1.0倍", "相关性": "高"}, {"端游名称(中文)": "模拟农场", "总搜索次数(7-8月)": "208,659", "7月搜索": "51,676", "8月搜索": "34,225", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "波比的游戏时间", "总搜索次数(7-8月)": "198,555", "7月搜索": "45,143", "8月搜索": "32,272", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "饥荒", "总搜索次数(7-8月)": "177,770", "7月搜索": "80,521", "8月搜索": "82,647", "8月相对增长": "1.0倍", "相关性": "高"}, {"端游名称(中文)": "反恐精英CS2", "总搜索次数(7-8月)": "162,694", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "火影究极风暴", "总搜索次数(7-8月)": "152,533", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "中"}, {"端游名称(中文)": "木筏求生", "总搜索次数(7-8月)": "151,346", "7月搜索": "55,793", "8月搜索": "43,603", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "生存战争", "总搜索次数(7-8月)": "143,019", "7月搜索": "58,618", "8月搜索": "48,112", "8月相对增长": "0.8倍", "相关性": "中"}, {"端游名称(中文)": "后室", "总搜索次数(7-8月)": "138,295", "7月搜索": "80,932", "8月搜索": "52,582", "8月相对增长": "0.6倍", "相关性": "中"}, {"端游名称(中文)": "车祸模拟器", "总搜索次数(7-8月)": "137,381", "7月搜索": "54,982", "8月搜索": "55,553", "8月相对增长": "1.0倍", "相关性": "中"}, {"端游名称(中文)": "暗区突围", "总搜索次数(7-8月)": "112,108", "7月搜索": "25,360", "8月搜索": "24,984", "8月相对增长": "1.0倍", "相关性": "高"}, {"端游名称(中文)": "海贼无双", "总搜索次数(7-8月)": "101,348", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "中"}, {"端游名称(中文)": "模拟山羊", "总搜索次数(7-8月)": "96,114", "7月搜索": "39,702", "8月搜索": "30,854", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "使命召唤", "总搜索次数(7-8月)": "94,527", "7月搜索": "33,018", "8月搜索": "26,253", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "超市模拟器", "总搜索次数(7-8月)": "94,277", "7月搜索": "70,656", "8月搜索": "13,956", "8月相对增长": "0.2倍", "相关性": "高"}, {"端游名称(中文)": "星露谷物语", "总搜索次数(7-8月)": "87,183", "7月搜索": "20,483", "8月搜索": "16,700", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "全面战争", "总搜索次数(7-8月)": "79,933", "7月搜索": "13,574", "8月搜索": "11,535", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "战争雷霆", "总搜索次数(7-8月)": "76,042", "7月搜索": "40,079", "8月搜索": "31,938", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "战地系列", "总搜索次数(7-8月)": "71,019", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "拳皇", "总搜索次数(7-8月)": "64,877", "7月搜索": "31,364", "8月搜索": "19,342", "8月相对增长": "0.6倍", "相关性": "高"}, {"端游名称(中文)": "荒野大镖客", "总搜索次数(7-8月)": "55,326", "7月搜索": "25,607", "8月搜索": "23,126", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "杀戮尖塔", "总搜索次数(7-8月)": "50,715", "7月搜索": "24,353", "8月搜索": "17,368", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "极限竞速", "总搜索次数(7-8月)": "46,814", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "原神", "总搜索次数(7-8月)": "44,999", "7月搜索": "24,183", "8月搜索": "20,816", "8月相对增长": "0.9倍", "相关性": "中"}, {"端游名称(中文)": "无畏契约", "总搜索次数(7-8月)": "44,434", "7月搜索": "22,675", "8月搜索": "14,104", "8月相对增长": "0.6倍", "相关性": "高"}, {"端游名称(中文)": "实况足球", "总搜索次数(7-8月)": "37,893", "7月搜索": "13,561", "8月搜索": "9,711", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "泰拉瑞亚", "总搜索次数(7-8月)": "36,922", "7月搜索": "19,408", "8月搜索": "17,514", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "模拟人生", "总搜索次数(7-8月)": "35,028", "7月搜索": "16,974", "8月搜索": "8,576", "8月相对增长": "0.5倍", "相关性": "高"}, {"端游名称(中文)": "红色警戒", "总搜索次数(7-8月)": "34,835", "7月搜索": "7,339", "8月搜索": "5,541", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "三国杀", "总搜索次数(7-8月)": "29,540", "7月搜索": "17,260", "8月搜索": "12,280", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "穿越火线", "总搜索次数(7-8月)": "29,089", "7月搜索": "7,454", "8月搜索": "6,446", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "文明", "总搜索次数(7-8月)": "26,758", "7月搜索": "11,455", "8月搜索": "9,727", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "三国志", "总搜索次数(7-8月)": "24,771", "7月搜索": "13,032", "8月搜索": "11,739", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "龙珠格斗", "总搜索次数(7-8月)": "21,732", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "森林之子", "总搜索次数(7-8月)": "21,372", "7月搜索": "3,578", "8月搜索": "2,957", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "3D驾驶", "总搜索次数(7-8月)": "21,041", "7月搜索": "3,107", "8月搜索": "2,442", "8月相对增长": "0.8倍", "相关性": "中"}, {"端游名称(中文)": "空洞骑士", "总搜索次数(7-8月)": "20,932", "7月搜索": "10,933", "8月搜索": "9,999", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "玩具熊的五夜后宫", "总搜索次数(7-8月)": "20,867", "7月搜索": "2,843", "8月搜索": "2,208", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "彩虹六号", "总搜索次数(7-8月)": "20,333", "7月搜索": "9,740", "8月搜索": "5,184", "8月相对增长": "0.5倍", "相关性": "高"}, {"端游名称(中文)": "热血传奇", "总搜索次数(7-8月)": "19,570", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "生化危机", "总搜索次数(7-8月)": "19,521", "7月搜索": "11,408", "8月搜索": "8,113", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "黑神话悟空", "总搜索次数(7-8月)": "17,370", "7月搜索": "5,496", "8月搜索": "5,086", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "钢铁雄心", "总搜索次数(7-8月)": "16,981", "7月搜索": "6,563", "8月搜索": "5,032", "8月相对增长": "0.8倍", "相关性": "高"}, {"端游名称(中文)": "恐鬼症", "总搜索次数(7-8月)": "15,107", "7月搜索": "8,151", "8月搜索": "6,956", "8月相对增长": "0.9倍", "相关性": "高"}, {"端游名称(中文)": "堡垒之夜", "总搜索次数(7-8月)": "15,040", "7月搜索": "5,570", "8月搜索": "9,470", "8月相对增长": "1.7倍", "相关性": "高"}, {"端游名称(中文)": "星际争霸", "总搜索次数(7-8月)": "14,842", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}, {"端游名称(中文)": "求生之路", "总搜索次数(7-8月)": "14,534", "7月搜索": "6,950", "8月搜索": "4,974", "8月相对增长": "0.7倍", "相关性": "高"}, {"端游名称(中文)": "EAFC", "总搜索次数(7-8月)": "14,063", "7月搜索": "0", "8月搜索": "0", "8月相对增长": "新词", "相关性": "高"}], "s2": [{"鲸云游戏名称": "尖叫才能跑MustScream（联机）", "游玩人数": "14,144", "注册人数": "9,210", "Steam对应游戏": "尖叫才能跑 MustScream", "appid": "—", "备注": "Roblox类联机恐怖，未收录Steam采集"}, {"鲸云游戏名称": "超级变色龙躲猫猫（联机）", "游玩人数": "12,948", "注册人数": "8,272", "Steam对应游戏": "超级变色龙躲猫猫", "appid": "—", "备注": "Roblox类联机休闲，未收录Steam采集"}, {"鲸云游戏名称": "伯吉的温馨厨房：汉堡店模拟器", "游玩人数": "5,502", "注册人数": "4,329", "Steam对应游戏": "伯吉温馨厨房汉堡店模拟器", "appid": "—", "备注": "小型模拟器，未收录Steam采集"}, {"鲸云游戏名称": "午夜轮班（联机）", "游玩人数": "5,742", "注册人数": "3,935", "Steam对应游戏": "午夜轮班", "appid": "—", "备注": "联机恐怖小游戏，未收录Steam采集"}, {"鲸云游戏名称": "极限竞速：地平线5（全车包）", "游玩人数": "5,284", "注册人数": "3,467", "Steam对应游戏": "极限竞速：地平线5", "appid": 1551360, "备注": "Steam在榜，148GB"}, {"鲸云游戏名称": "漫威蜘蛛侠2", "游玩人数": "4,550", "注册人数": "2,984", "Steam对应游戏": "漫威蜘蛛侠2", "appid": 2651280, "备注": "Steam在榜，104GB"}, {"鲸云游戏名称": "恐龙岛：正式服（免号版）", "游玩人数": "3,386", "注册人数": "2,112", "Steam对应游戏": "恐龙岛 The Isle", "appid": 376210, "备注": "The Isle 中文俗称，Steam在榜"}, {"鲸云游戏名称": "人渣 SCUM（全DLC版）", "游玩人数": "3,179", "注册人数": "2,073", "Steam对应游戏": "人渣 SCUM", "appid": 513710, "备注": "Steam在榜，88.76GB"}, {"鲸云游戏名称": "漫威蜘蛛侠：迈尔斯莫拉莱斯", "游玩人数": "2,511", "注册人数": "1,594", "Steam对应游戏": "漫威蜘蛛侠：迈尔斯", "appid": 1817190, "备注": "Steam在榜，61.6GB"}, {"鲸云游戏名称": "ghzs", "游玩人数": "2,723", "注册人数": "1,420", "Steam对应游戏": "ghzs", "appid": "—", "备注": "平台内代号，未识别"}, {"鲸云游戏名称": "排水模拟器", "游玩人数": "2,083", "注册人数": "1,355", "Steam对应游戏": "排水模拟器", "appid": "—", "备注": "未收录Steam采集"}, {"鲸云游戏名称": "怪兽巢穴（恐龙岛-巨兽岛）", "游玩人数": "1,981", "注册人数": "1,299", "Steam对应游戏": "怪兽巢穴（恐龙岛MOD）", "appid": 376210, "备注": "恐龙岛衍生内容，关联The Isle"}, {"鲸云游戏名称": "机械狂欢（联机）", "游玩人数": "2,005", "注册人数": "1,290", "Steam对应游戏": "机械狂欢 Machine Party", "appid": 4108000, "备注": "Steam新游，7/30发售，1.35GB"}, {"鲸云游戏名称": "检疫区：最后一站（隔离区边境丧尸检查官）", "游玩人数": "2,018", "注册人数": "1,225", "Steam对应游戏": "检疫区：最后一站", "appid": "—", "备注": "小型独立，未收录Steam采集"}, {"鲸云游戏名称": "遨游中国2 重制版", "游玩人数": "1,844", "注册人数": "1,089", "Steam对应游戏": "遨游中国2 重制版", "appid": 227300, "备注": "基于欧卡2的国产MOD，关联ETS2"}, {"鲸云游戏名称": "NBA2K26", "游玩人数": "1,611", "注册人数": "1,079", "Steam对应游戏": "NBA2K26", "appid": 3472040, "备注": "Steam在榜，72.23GB"}, {"鲸云游戏名称": "黑神话：悟空（Steam自备账号）", "游玩人数": "1,679", "注册人数": "1,064", "Steam对应游戏": "黑神话悟空", "appid": 2358720, "备注": "Steam在榜，139.57GB"}, {"鲸云游戏名称": "欧洲卡车模拟器2", "游玩人数": "1,479", "注册人数": "960", "Steam对应游戏": "欧洲卡车模拟器2", "appid": 227300, "备注": "Steam在榜，35.22GB"}, {"鲸云游戏名称": "双人成行", "游玩人数": "1,436", "注册人数": "957", "Steam对应游戏": "双人成行", "appid": 1426210, "备注": "Steam在榜，44.8GB"}, {"鲸云游戏名称": "R.E.P.O.（联机）", "游玩人数": "1,516", "注册人数": "951", "Steam对应游戏": "R.E.P.O.", "appid": 3241660, "备注": "Steam在榜，1.39GB"}], "s3": [{"中文名称": "机械狂欢", "游戏名称(原名)": "Machine Party", "appid": 4108000, "开发者": "Mike Klubnika/GDeavid", "玩法标签": "派对/恐怖/合作/PvP/独立", "发行日期": "2026-07-30", "近一年内上线": "是", "安装大小": "1.35GB", "当前在线(8/25)": "1,514", "近一年峰值": "22,629", "峰值日期": "2026-08-04", "独立游戏": "是", "最低配置": "Win11/双核2.4GHz/8GB/RX6500XT或GTX1660/1GB", "推荐配置": "", "品类": "合作/派对"}, {"中文名称": "渔力全开", "游戏名称(原名)": "How to Fish", "appid": 4001890, "开发者": "Dazed Games", "玩法标签": "钓鱼/合作/物理/独立", "发行日期": "2026-08-20", "近一年内上线": "是", "安装大小": "0.61GB", "当前在线(8/25)": "136,349", "近一年峰值": "341,691", "峰值日期": "2026-08-24", "独立游戏": "是", "最低配置": "Win10/i5-5257U或R3 1200/8GB/GTX1050/1GB", "推荐配置": "", "品类": "合作/派对"}, {"中文名称": "大漫步", "游戏名称(原名)": "Big Walk", "appid": 1478500, "开发者": "House House", "玩法标签": "合作解谜/开放世界/探索/独立团队", "发行日期": "2026-08-04", "近一年内上线": "是", "安装大小": "7.23GB", "当前在线(8/25)": "5,550", "近一年峰值": "46,409", "峰值日期": "2026-08-05", "独立游戏": "是", "最低配置": "Win10/i7-7700K或R5 1600X/12GB/GTX750Ti 2GB", "推荐配置": "Win11/i5-10600K/16GB/GTX1070", "品类": "合作/派对"}, {"中文名称": "雾之领域", "游戏名称(原名)": "Fields of Mistria", "appid": 2142790, "开发者": "NPC Studio", "玩法标签": "农场模拟/生活/像素/独立", "发行日期": "2026-08-05(正式)", "近一年内上线": "是", "安装大小": "1.21GB", "当前在线(8/25)": "11,156", "近一年峰值": "39,233", "峰值日期": "2026-08-09", "独立游戏": "是", "最低配置": "Win10/E6400/6GB/GTX460 1GB/2GB", "推荐配置": "Win10/R3 3300X/8GB/RX480/2GB", "品类": "独立/休闲Rogue"}, {"中文名称": "致命躯壳2", "游戏名称(原名)": "Mortal Shell II", "appid": 2584270, "开发者": "Cold Symmetry", "玩法标签": "魂系/黑暗奇幻/动作RPG", "发行日期": "2026-08-20", "近一年内上线": "是", "安装大小": "68.07GB", "当前在线(8/25)": "15,035", "近一年峰值": "44,486", "峰值日期": "2026-08-23", "独立游戏": "是(出身)", "最低配置": "Win10/i7-10700K或R5 3600/16GB/RTX2060S 8GB/70GB SSD", "推荐配置": "", "品类": "动作/冒险RPG"}, {"中文名称": "无间地狱2", "游戏名称(原名)": "No More Room in Hell 2", "appid": 292000, "开发者": "Torn Banner Studios", "玩法标签": "生存恐怖/合作/丧尸/独立", "发行日期": "2026-08-11(正式)", "近一年内上线": "是", "安装大小": "23.43GB", "当前在线(8/25)": "0", "近一年峰值": "16,330", "峰值日期": "2026-08-23", "独立游戏": "是", "最低配置": "Win10/i5-6600或R3 1200/12GB/GTX1650/35GB", "推荐配置": "Win10/i7-10700K/16GB/RTX2070/35GB", "品类": "合作/派对"}, {"中文名称": "任务栏英雄", "游戏名称(原名)": "TBH: Task Bar Hero", "appid": 3678970, "开发者": "Nugem Studio", "玩法标签": "挂机/自动战斗/桌面/独立/免费", "发行日期": "2026-05-27", "近一年内上线": "是", "安装大小": "0.55GB", "当前在线(8/25)": "0", "近一年峰值": "546,130", "峰值日期": "2026-06-18", "独立游戏": "是", "最低配置": "Win10/i3-6100/8GB/GTX750Ti 2GB/2GB", "推荐配置": "Win10/i5-8400/16GB/GTX1060/3GB", "品类": "独立/休闲Rogue"}, {"中文名称": "杀戮尖塔2", "游戏名称(原名)": "Slay the Spire 2", "appid": 2868840, "开发者": "Mega Crit", "玩法标签": "卡组构筑/Roguelike/策略/独立/EA", "发行日期": "2026-03-05", "近一年内上线": "是", "安装大小": "2.71GB", "当前在线(8/25)": "0", "近一年峰值": "574,638", "峰值日期": "2026-03-08", "独立游戏": "是", "最低配置": "Win10/双核2GHz/4GB/DX12或Vulkan 1GB显存/4GB", "推荐配置": "Win10/四核3GHz/8GB/2GB显存/4GB", "品类": "策略/经营"}, {"中文名称": "极限竞速：地平线6", "游戏名称(原名)": "Forza Horizon 6", "appid": 2483190, "开发者": "Playground Games", "玩法标签": "竞速/开放世界/驾驶/大厂", "发行日期": "2026-05-18", "近一年内上线": "是", "安装大小": "167.0GB", "当前在线(8/25)": "11,407", "近一年峰值": "302,645", "峰值日期": "2026-05", "独立游戏": "否", "最低配置": "Win10/i5-8400或R5 1600/16GB/GTX1650/167GB", "推荐配置": "Win10/i5-12400F/16GB/RTX3060Ti/167GB", "品类": "竞速"}, {"中文名称": "NBA 2K26", "游戏名称(原名)": "NBA 2K26", "appid": 3472040, "开发者": "Visual Concepts", "玩法标签": "体育/篮球/模拟/大厂", "发行日期": "2025-09-05", "近一年内上线": "是", "安装大小": "72.23GB", "当前在线(8/25)": "13,949", "近一年峰值": "52,863", "峰值日期": "2026-05-25", "独立游戏": "否", "最低配置": "Win10/i3-9100或R3 1200/8GB/GTX1060 5GB/110GB", "推荐配置": "Win11/i5-10600/16GB/RTX2070/110GB", "品类": "其他"}, {"中文名称": "ARC突袭者", "游戏名称(原名)": "ARC Raiders", "appid": 1808500, "开发者": "Embark Studios", "玩法标签": "撤离射击/PvPvE/科幻/在线游戏", "发行日期": "2025-10-30", "近一年内上线": "是", "安装大小": "53.11GB", "当前在线(8/25)": "13,599", "近一年峰值": "481,966", "峰值日期": "2025-11-16", "独立游戏": "否", "最低配置": "Win10/i5-6600K/12GB/GTX1050Ti", "推荐配置": "Win10/i5-9600K/16GB/RTX2070", "品类": "其他"}, {"中文名称": "幻兽帕鲁", "游戏名称(原名)": "Palworld", "appid": 1623730, "开发者": "Pocketpair", "玩法标签": "开放世界/生存/制作/收集/独立", "发行日期": "2026-07-10(正式)", "近一年内上线": "是", "安装大小": "38.35GB", "当前在线(8/25)": "106,838", "近一年峰值": "2,101,867", "峰值日期": "2024-01-27(EA)", "独立游戏": "是", "最低配置": "Win10/i5-9400F/16GB/GTX1660/40GB", "推荐配置": "Win11/i5-12400/32GB/RTX3060Ti/40GB", "品类": "其他"}, {"中文名称": "R.E.P.O.", "游戏名称(原名)": "R.E.P.O.", "appid": 3241660, "开发者": "semiwork", "玩法标签": "恐怖/在线合作/物理/独立/EA", "发行日期": "2025-02-26", "近一年内上线": "否", "安装大小": "1.39GB", "当前在线(8/25)": "10,392", "近一年峰值": "271,571", "峰值日期": "2025-03-23", "独立游戏": "是", "最低配置": "Win10/i5-6600/8GB/GTX970/1GB", "推荐配置": "Win11/i7-8700/8GB/GTX1070/1GB", "品类": "合作/派对"}, {"中文名称": "僵尸毁灭工程", "游戏名称(原名)": "Project Zomboid", "appid": 108600, "开发者": "The Indie Stone", "玩法标签": "生存/僵尸/开放世界/独立", "发行日期": "2013-11-08", "近一年内上线": "否", "安装大小": "9.64GB", "当前在线(8/25)": "48,492", "近一年峰值": "124,995", "峰值日期": "2026-08-09", "独立游戏": "是", "最低配置": "Win10/2.77GHz四核/8GB/独显4GB显存/10GB", "推荐配置": "", "品类": "生存沙盒"}, {"中文名称": "以撒的结合：重生", "游戏名称(原名)": "The Binding of Isaac: Rebirth", "appid": 250900, "开发者": "Nicalis/Edmund", "玩法标签": "动作Roguelike/像素/独立", "发行日期": "2014-11-04", "近一年内上线": "否", "安装大小": "3.15GB", "当前在线(8/25)": "0", "近一年峰值": "156,156", "峰值日期": "2026-07-07", "独立游戏": "是", "最低配置": "WinXP/Core2Duo/2GB/独显/449MB", "推荐配置": "Win8/2.4GHz四核/8GB/Intel HD4000/449MB", "品类": "独立/休闲Rogue"}, {"中文名称": "街头霸王6", "游戏名称(原名)": "Street Fighter 6", "appid": 1364780, "开发者": "CAPCOM", "玩法标签": "格斗/竞技/街机/大厂", "发行日期": "2023-06-02", "近一年内上线": "否", "安装大小": "105.1GB", "当前在线(8/25)": "0", "近一年峰值": "72,977", "峰值日期": "2026-05-28", "独立游戏": "否", "最低配置": "Win10/i5-7500或R3 1200/8GB/GTX1060 6GB/60GB", "推荐配置": "Win10/i7-8700/16GB/RTX2070/60GB", "品类": "格斗"}, {"中文名称": "欧洲卡车模拟器2", "游戏名称(原名)": "Euro Truck Simulator 2", "appid": 227300, "开发者": "SCS Software", "玩法标签": "驾驶/模拟/开放世界/大厂", "发行日期": "2012-10-18", "近一年内上线": "否", "安装大小": "35.22GB", "当前在线(8/25)": "14,812", "近一年峰值": "73,887", "峰值日期": "2026-02-22", "独立游戏": "否", "最低配置": "Win10/i5-6400/8GB/GTX660/25GB", "推荐配置": "Win10/i5-9600/12GB/GTX1660/25GB", "品类": "模拟"}, {"中文名称": "巅峰", "游戏名称(原名)": "PEAK", "appid": 3527290, "开发者": "Team PEAK", "玩法标签": "合作/物理/动作Rogue/独立", "发行日期": "2025-06-16", "近一年内上线": "否", "安装大小": "3.58GB", "当前在线(8/25)": "26,719", "近一年峰值": "170,759", "峰值日期": "2025-08-17", "独立游戏": "是", "最低配置": "Win10/i5 2.5GHz/8GB/GTX1060/4GB", "推荐配置": "Win11/i5 3GHz/16GB/RTX2060/6GB", "品类": "合作/派对"}, {"中文名称": "人渣", "游戏名称(原名)": "SCUM", "appid": 513710, "开发者": "Gamepires", "玩法标签": "开放世界生存/僵尸/大型多人在线", "发行日期": "2025-06-17", "近一年内上线": "否", "安装大小": "88.76GB", "当前在线(8/25)": "0", "近一年峰值": "68,322", "峰值日期": "2020-04", "独立游戏": "是", "最低配置": "Win10/i5-4430/16GB/GTX1060 3GB/80GB", "推荐配置": "Win10/i5-6600K/16GB/RTX2060/80GB", "品类": "其他"}, {"中文名称": "邦戈猫", "游戏名称(原名)": "Bongo Cat", "appid": 3419430, "开发者": "Irox Games", "玩法标签": "桌面伴侣/挂机/休闲/独立/免费", "发行日期": "2025-03-05", "近一年内上线": "否", "安装大小": "1.16GB", "当前在线(8/25)": "0", "近一年峰值": "194,508", "峰值日期": "2025-05-04", "独立游戏": "是", "最低配置": "Win10/i5-5200/1GB/任意显卡/100MB", "推荐配置": "Win10/i5-10500/2GB/任意显卡/100MB", "品类": "独立/休闲Rogue"}, {"中文名称": "漫威蜘蛛侠2", "游戏名称(原名)": "Marvel's Spider-Man 2", "appid": 2651280, "开发者": "Insomniac Games/Nixxes", "玩法标签": "动作/开放世界/超级英雄/单人/3A", "发行日期": "2025-01-30", "近一年内上线": "否", "安装大小": "104.05GB", "当前在线(8/25)": "4,561", "近一年峰值": "28,189", "峰值日期": "2025-02-02", "独立游戏": "否", "最低配置": "Win10/i3-8100/16GB/GTX1650/140GB SSD", "推荐配置": "Win10/i5-8400/16GB/RTX3060/140GB SSD", "品类": "动作/冒险RPG"}, {"中文名称": "天国：拯救2", "游戏名称(原名)": "Kingdom Come: Deliverance II", "appid": 1771300, "开发者": "Warhorse Studios", "玩法标签": "RPG/中世纪/开放世界/大厂", "发行日期": "2025-02-04", "近一年内上线": "否", "安装大小": "163.29GB", "当前在线(8/25)": "0", "近一年峰值": "256,206", "峰值日期": "2025-02-09", "独立游戏": "否", "最低配置": "Win10/i5-8400或R5 2600/16GB/GTX1060 6GB/100GB", "推荐配置": "Win10/i7-13700K/32GB/RTX4070/100GB", "品类": "动作/冒险RPG"}, {"中文名称": "黑神话：悟空", "游戏名称(原名)": "Black Myth: Wukong", "appid": 2358720, "开发者": "Game Science", "玩法标签": "动作RPG/魂类/神话/单人/3A", "发行日期": "2024-08-20", "近一年内上线": "否", "安装大小": "139.57GB", "当前在线(8/25)": "25,264", "近一年峰值": "2,415,714", "峰值日期": "2024-08-22", "独立游戏": "否", "最低配置": "Win10/i5-8400或R5 1600/16GB/GTX1060 6GB/130GB", "推荐配置": "Win10/i7-9700/16GB/RTX2060/130GB", "品类": "动作/冒险RPG"}, {"中文名称": "地狱潜兵2", "游戏名称(原名)": "HELLDIVERS 2", "appid": 553850, "开发者": "Arrowhead/PS", "玩法标签": "合作射击/PvE/科幻/大厂", "发行日期": "2024-02-08", "近一年内上线": "否", "安装大小": "26.11GB", "当前在线(8/25)": "37,236", "近一年峰值": "458,709", "峰值日期": "2024-02-24", "独立游戏": "否", "最低配置": "Win10/i7-4790K或R5 1500X/8GB/GTX1050Ti/135GB", "推荐配置": "Win10/i7-9700K/16GB/RTX2060/40GB", "品类": "合作/派对"}, {"中文名称": "模拟农场25", "游戏名称(原名)": "Farming Simulator 25", "appid": 2300320, "开发者": "GIANTS Software", "玩法标签": "农场模拟/写实/大厂", "发行日期": "2024-11-12", "近一年内上线": "否", "安装大小": "38.96GB", "当前在线(8/25)": "11,391", "近一年峰值": "135,970", "峰值日期": "2024-11-17", "独立游戏": "否", "最低配置": "Win10/i5-6400或R5 1400/8GB/GTX1050Ti/50GB", "推荐配置": "Win10/i7-10700/12GB/RTX2070/50GB", "品类": "模拟"}, {"中文名称": "潜行者2：切尔诺贝利之心", "游戏名称(原名)": "S.T.A.L.K.E.R. 2", "appid": 1643320, "开发者": "GSC Game World", "玩法标签": "开放世界FPS/生存/后末日/大厂", "发行日期": "2024-11-20", "近一年内上线": "否", "安装大小": "174.34GB", "当前在线(8/25)": "11,457", "近一年峰值": "121,335", "峰值日期": "2024-11-24", "独立游戏": "否", "最低配置": "Win10/i7-7700K/16GB/GTX1060 6GB/160GB", "推荐配置": "Win10/i7-11700/32GB/RTX3070Ti/160GB", "品类": "动作/冒险RPG"}, {"中文名称": "星露谷物语", "游戏名称(原名)": "Stardew Valley", "appid": 413150, "开发者": "ConcernedApe", "玩法标签": "农场模拟/像素/生活模拟/独立", "发行日期": "2016-02-26", "近一年内上线": "否", "安装大小": "1.97GB", "当前在线(8/25)": "51,706", "近一年峰值": "236,614", "峰值日期": "2024-03-24", "独立游戏": "是", "最低配置": "WinVista/2GHz/2GB/256MB显存/500MB", "推荐配置": "", "品类": "独立/休闲Rogue"}, {"中文名称": "博德之门3", "游戏名称(原名)": "Baldur's Gate 3", "appid": 1086940, "开发者": "Larian Studios", "玩法标签": "CRPG/回合制/策略/奇幻/大厂", "发行日期": "2023-08-03", "近一年内上线": "否", "安装大小": "144.67GB", "当前在线(8/25)": "30,379", "近一年峰值": "875,343", "峰值日期": "2023-08-06", "独立游戏": "否", "最低配置": "Win10/i5-4690或FX8350/8GB/GTX970/150GB", "推荐配置": "Win10/i7-8700K/16GB/RTX2060S/150GB", "品类": "其他"}, {"中文名称": "赛博朋克2077", "游戏名称(原名)": "Cyberpunk 2077", "appid": 1091500, "开发者": "CD PROJEKT RED", "玩法标签": "开放世界RPG/赛博朋克/单人/大厂", "发行日期": "2020-12-10", "近一年内上线": "否", "安装大小": "61.81GB", "当前在线(8/25)": "29,057", "近一年峰值": "1,054,388", "峰值日期": "2020-12-10", "独立游戏": "否", "最低配置": "Win10/i7-6700或R5 1600/12GB/GTX1060 6GB/70GB", "推荐配置": "Win10/i7-12700/16GB/RTX2060S/70GB", "品类": "动作/冒险RPG"}, {"中文名称": "七日杀", "游戏名称(原名)": "7 Days to Die", "appid": 251570, "开发者": "The Fun Pimps", "玩法标签": "生存/僵尸/体素建造/独立", "发行日期": "2024-07-25", "近一年内上线": "否", "安装大小": "19.43GB", "当前在线(8/25)": "16,932", "近一年峰值": "125,419", "峰值日期": "2024-07-28", "独立游戏": "是", "最低配置": "Win10/2.77GHz四核/8GB/独显4GB显存/10GB", "推荐配置": "N/A(推荐存储15GB)", "品类": "生存沙盒"}, {"中文名称": "泰拉瑞亚", "游戏名称(原名)": "Terraria", "appid": 105600, "开发者": "Re-Logic", "玩法标签": "沙盒/开放世界生存建造/像素/独立", "发行日期": "2011-05-16", "近一年内上线": "否", "安装大小": "2.32GB", "当前在线(8/25)": "0", "近一年峰值": "489,886", "峰值日期": "2020-05-16", "独立游戏": "是", "最低配置": "WinXP/2GHz/2.5GB/128MB显存/200MB", "推荐配置": "双核3GHz/4GB/256MB显存/200MB", "品类": "生存沙盒"}, {"中文名称": "GTA5", "游戏名称(原名)": "Grand Theft Auto V", "appid": 271590, "开发者": "Rockstar North", "玩法标签": "开放世界/动作/犯罪/大厂", "发行日期": "2015-04-13", "近一年内上线": "否", "安装大小": "120.19GB", "当前在线(8/25)": "0", "近一年峰值": "364,548", "峰值日期": "2015-04-19", "独立游戏": "否", "最低配置": "Win10/Q6600/4GB/9800GT 1GB/125GB", "推荐配置": "Win10/i5-3470/8GB/GTX660/125GB", "品类": "动作/冒险RPG"}, {"中文名称": "艾尔登法环", "游戏名称(原名)": "ELDEN RING", "appid": 1245620, "开发者": "FromSoftware", "玩法标签": "魂系/开放世界/动作RPG/大厂", "发行日期": "2022-02-24", "近一年内上线": "否", "安装大小": "69.96GB", "当前在线(8/25)": "0", "近一年峰值": "953,426", "峰值日期": "2022-03-05", "独立游戏": "否", "最低配置": "Win10/i5-8400/12GB/GTX1060 3GB/60GB", "推荐配置": "Win10/i7-8700K/16GB/GTX1070/60GB", "品类": "动作/冒险RPG"}, {"中文名称": "求生之路2", "游戏名称(原名)": "Left 4 Dead 2", "appid": 550, "开发者": "Valve", "玩法标签": "合作射击/僵尸/恐怖/大厂", "发行日期": "2009-11-17", "近一年内上线": "否", "安装大小": "25.15GB", "当前在线(8/25)": "20,067", "近一年峰值": "162,399", "峰值日期": "2013-12-26", "独立游戏": "否", "最低配置": "Win7/奔腾4 3GHz/2GB/128MB显存/13GB", "推荐配置": "Win7/酷睿2 2.4GHz/2GB/7600/13GB", "品类": "合作/派对"}, {"中文名称": "收获日2", "游戏名称(原名)": "PAYDAY 2", "appid": 218620, "开发者": "OVERKILL/Starbreeze", "玩法标签": "合作/劫案/射击/大厂", "发行日期": "2013-08-13", "近一年内上线": "否", "安装大小": "34.91GB", "当前在线(8/25)": "0", "近一年峰值": "247,709", "峰值日期": "2017-06-11", "独立游戏": "否", "最低配置": "Win10/2GHz双核/4GB/1GB显存/32GB", "推荐配置": "Win11/2.3GHz四核/8GB/2GB显存/32GB", "品类": "合作/派对"}, {"中文名称": "骑马与砍杀2", "游戏名称(原名)": "Mount & Blade II: Bannerlord", "appid": 261550, "开发者": "TaleWorlds", "玩法标签": "中世纪/沙盒/策略/动作", "发行日期": "2022-10-25", "近一年内上线": "否", "安装大小": "110.28GB", "当前在线(8/25)": "0", "近一年峰值": "248,216", "峰值日期": "2020-04-04", "独立游戏": "否", "最低配置": "Win7/i3-8100/6GB/GTX660/60GB", "推荐配置": "Win10/i5-9600K/8GB/GTX1060/60GB", "品类": "动作/冒险RPG"}, {"中文名称": "英灵神殿", "游戏名称(原名)": "Valheim", "appid": 892970, "开发者": "Iron Gate AB", "玩法标签": "开放世界生存建造/维京/独立", "发行日期": "2021-02-02", "近一年内上线": "否", "安装大小": "1.48GB", "当前在线(8/25)": "0", "近一年峰值": "502,387", "峰值日期": "2021-02-21", "独立游戏": "是", "最低配置": "Win10/2.6GHz四核/8GB/GTX950/1GB", "推荐配置": "Win10/i5 3GHz/16GB/GTX1060/1GB", "品类": "生存沙盒"}, {"中文名称": "双人成行", "游戏名称(原名)": "It Takes Two", "appid": 1426210, "开发者": "Hazelight/EA", "玩法标签": "合作/分屏/解谜/冒险/大厂", "发行日期": "2021-03-26", "近一年内上线": "否", "安装大小": "44.8GB", "当前在线(8/25)": "5,263", "近一年峰值": "71,039", "峰值日期": "2024-12-21", "独立游戏": "否", "最低配置": "Win8.1/i3-2100T/8GB/GTX660/50GB", "推荐配置": "Win8.1/i5-3570K/16GB/GTX980/50GB", "品类": "合作/派对"}, {"中文名称": "极限竞速：地平线5", "游戏名称(原名)": "Forza Horizon 5", "appid": 1551360, "开发者": "Playground Games", "玩法标签": "竞速/开放世界/驾驶/大厂", "发行日期": "2021-11-09", "近一年内上线": "否", "安装大小": "148.23GB", "当前在线(8/25)": "3,576", "近一年峰值": "81,096", "峰值日期": "2021-11-13", "独立游戏": "否", "最低配置": "Win10/i5-4460/8GB/GTX970/110GB", "推荐配置": "Win10/i5-8400/16GB/GTX1070/110GB", "品类": "竞速"}, {"中文名称": "恐龙岛", "游戏名称(原名)": "The Isle", "appid": 376210, "开发者": "Afterthought LLC", "玩法标签": "恐龙生存/开放世界/多人在线/独立", "发行日期": "2015-12-02", "近一年内上线": "否", "安装大小": "20.7GB", "当前在线(8/25)": "0", "近一年峰值": "27,398", "峰值日期": "2026-08-23", "独立游戏": "是", "最低配置": "Win7/四核3GHz/8GB/GTX960/25GB", "推荐配置": "Win10/四核3.4GHz/16GB/GTX1070/25GB", "品类": "生存沙盒"}, {"中文名称": "漫威蜘蛛侠：迈尔斯", "游戏名称(原名)": "Marvel's Spider-Man: Miles Morales", "appid": 1817190, "开发者": "Insomniac/Nixxes", "玩法标签": "动作/开放世界/超级英雄/大厂", "发行日期": "2022-11-18", "近一年内上线": "否", "安装大小": "61.6GB", "当前在线(8/25)": "0", "近一年峰值": "13,539", "峰值日期": "2022-11-19", "独立游戏": "否", "最低配置": "Win10/i3-4160/8GB/GTX950/75GB", "推荐配置": "Win10/i5-4670/16GB/GTX1060 6GB/75GB", "品类": "动作/冒险RPG"}, {"中文名称": "文明6", "游戏名称(原名)": "Sid Meier's Civilization VI", "appid": 289070, "开发者": "Firaxis Games", "玩法标签": "策略/回合制/历史/大厂", "发行日期": "2016-10-21", "近一年内上线": "否", "安装大小": "96.23GB", "当前在线(8/25)": "0", "近一年峰值": "162,657", "峰值日期": "2016-10-22", "独立游戏": "否", "最低配置": "Win7/i3 2.5GHz/4GB/1GB显存/17GB", "推荐配置": "Win7/四代i5/8GB/2GB显存/23GB", "品类": "策略/经营"}, {"中文名称": "异星工厂", "游戏名称(原名)": "Factorio", "appid": 427520, "开发者": "Wube Software", "玩法标签": "自动化/基地建造/沙盒/独立", "发行日期": "2020-08-14", "近一年内上线": "否", "安装大小": "21.45GB", "当前在线(8/25)": "10,914", "近一年峰值": "118,674", "峰值日期": "2024-10-27", "独立游戏": "是", "最低配置": "Win10/四核3GHz/8GB/GTX750Ti/5GB", "推荐配置": "Win10/四核4GHz/16GB/GTX1050Ti/10GB", "品类": "策略/经营"}, {"中文名称": "钢铁雄心4", "游戏名称(原名)": "Hearts of Iron IV", "appid": 394360, "开发者": "Paradox", "玩法标签": "策略/大战略/二战", "发行日期": "2016-06-06", "近一年内上线": "否", "安装大小": "6.25GB", "当前在线(8/25)": "20,309", "近一年峰值": "93,196", "峰值日期": "2024-11-16", "独立游戏": "否", "最低配置": "Win10/i5-750或FX4300/4GB/GTX470/2GB", "推荐配置": "Win10/i5-2500K/6GB/GTX570/2GB", "品类": "策略/经营"}, {"中文名称": "全面战争：战锤3", "游戏名称(原名)": "Total War: WARHAMMER III", "appid": 1142710, "开发者": "Creative Assembly/SEGA", "玩法标签": "策略/RTS/奇幻", "发行日期": "2022-02-17", "近一年内上线": "否", "安装大小": "84.32GB", "当前在线(8/25)": "20,309", "近一年峰值": "166,754", "峰值日期": "2022-02-17", "独立游戏": "否", "最低配置": "Win7/i3系列/6GB/GTX900系列/120GB", "推荐配置": "Win10/i5系列/8GB/GTX1660Ti/120GB", "品类": "策略/经营"}, {"中文名称": "环世界", "游戏名称(原名)": "RimWorld", "appid": 294100, "开发者": "Ludeon Studios", "玩法标签": "殖民地模拟/生存/独立", "发行日期": "2018-10-17", "近一年内上线": "否", "安装大小": "1.07GB", "当前在线(8/25)": "22,669", "近一年峰值": "96,040", "峰值日期": "2025-07-20", "独立游戏": "是", "最低配置": "Win7/Core2Duo/4GB/Intel HD4000/1GB", "推荐配置": "", "品类": "策略/经营"}, {"中文名称": "十字军之王3", "游戏名称(原名)": "Crusader Kings III", "appid": 1158310, "开发者": "Paradox", "玩法标签": "策略/大战略/中世纪", "发行日期": "2020-09-01", "近一年内上线": "否", "安装大小": "17.51GB", "当前在线(8/25)": "16,628", "近一年峰值": "98,872", "峰值日期": "2020-09-06", "独立游戏": "否", "最低配置": "Win10/i5-750/8GB/GTX660/20GB", "推荐配置": "Win10/i5-8400/16GB/GTX970/20GB", "品类": "策略/经营"}, {"中文名称": "饥荒联机版", "游戏名称(原名)": "Don't Starve Together", "appid": 322330, "开发者": "Klei Entertainment", "玩法标签": "生存/合作/独立", "发行日期": "2016-04-21", "近一年内上线": "否", "安装大小": "1.5GB", "当前在线(8/25)": "19,633", "近一年峰值": "122,662", "峰值日期": "2026-08", "独立游戏": "是", "最低配置": "WinVista/1.7GHz/1GB/HD5450 256MB/3GB", "推荐配置": "", "品类": "生存沙盒"}, {"中文名称": "上古卷轴5：天际 特别版", "游戏名称(原名)": "Skyrim Special Edition", "appid": 489830, "开发者": "Bethesda", "玩法标签": "开放世界RPG/奇幻", "发行日期": "2016-10-28", "近一年内上线": "否", "安装大小": "14.99GB", "当前在线(8/25)": "22,464", "近一年峰值": "69,906", "峰值日期": "2016-10-30", "独立游戏": "否", "最低配置": "Win7/i5-750/8GB/GTX470 1GB/12GB", "推荐配置": "Win7/i5-2400/8GB/GTX780 3GB/12GB", "品类": "其他"}, {"中文名称": "盖瑞模组", "游戏名称(原名)": "Garry's Mod", "appid": 4000, "开发者": "Facepunch/Valve", "玩法标签": "沙盒/物理/独立", "发行日期": "2006-11-29", "近一年内上线": "否", "安装大小": "7.03GB", "当前在线(8/25)": "16,552", "近一年峰值": "73,863", "峰值日期": "2015-01-02", "独立游戏": "是", "最低配置": "Win10/2GHz/4GB/1GB显存/10GB", "推荐配置": "Win10/2.5GHz/8GB/4GB显存/25GB", "品类": "生存沙盒"}, {"中文名称": "几何冲刺", "游戏名称(原名)": "Geometry Dash", "appid": 322170, "开发者": "RobTop Games", "玩法标签": "音乐/平台跳跃/独立", "发行日期": "2014-12-22", "近一年内上线": "否", "安装大小": "0.31GB", "当前在线(8/25)": "22,997", "近一年峰值": "109,993", "峰值日期": "2026-03-07", "独立游戏": "是", "最低配置": "WinXP/2GHz/512MB/OpenGL2.0/100MB", "推荐配置": "", "品类": "独立/休闲Rogue"}, {"中文名称": "未转变者", "游戏名称(原名)": "Unturned", "appid": 304930, "开发者": "Smartly Dressed Games", "玩法标签": "生存/僵尸/免费/独立", "发行日期": "2017-07-07", "近一年内上线": "否", "安装大小": "2.58GB", "当前在线(8/25)": "14,558", "近一年峰值": "112,703", "峰值日期": "2023-01-28", "独立游戏": "是", "最低配置": "Win7/3GHz/8GB/4GB", "推荐配置": "Win10/4GHz/16GB/6GB", "品类": "生存沙盒"}, {"中文名称": "BeamNG.drive", "游戏名称(原名)": "BeamNG.drive", "appid": 284160, "开发者": "BeamNG", "玩法标签": "驾驶模拟/物理/独立", "发行日期": "2015-05-29", "近一年内上线": "否", "安装大小": "49.95GB", "当前在线(8/25)": "12,254", "近一年峰值": "47,424", "峰值日期": "2026-07-29", "独立游戏": "是", "最低配置": "Win10/R5 1600或i5-8400/16GB/RX570或GTX1060 6GB/60GB", "推荐配置": "Win10/R7 3700X/32GB/RTX3060 8GB/60GB", "品类": "竞速"}, {"中文名称": "幸福工厂", "游戏名称(原名)": "Satisfactory", "appid": 526870, "开发者": "Coffee Stain Studios", "玩法标签": "自动化/基地建造/独立", "发行日期": "2024-09-10", "近一年内上线": "否", "安装大小": "28.12GB", "当前在线(8/25)": "11,328", "近一年峰值": "186,158", "峰值日期": "2024-09-15", "独立游戏": "是", "最低配置": "Win10/i5-3570/8GB/GTX1650/20GB", "推荐配置": "Win11/R5 5600X或i5-12400/16GB/RTX2070/20GB", "品类": "策略/经营"}, {"中文名称": "帝国时代2：决定版", "游戏名称(原名)": "Age of Empires II: DE", "appid": 813780, "开发者": "World's Edge/Xbox", "玩法标签": "RTS/历史/策略", "发行日期": "2019-11-14", "近一年内上线": "否", "安装大小": "14.32GB", "当前在线(8/25)": "13,967", "近一年峰值": "38,725", "峰值日期": "2021-01-30", "独立游戏": "否", "最低配置": "Win10/Core2Duo或Athlon64x2/4GB/GT420/15GB", "推荐配置": "Win10/i5 2.4GHz/8GB/GTX650/15GB", "品类": "策略/经营"}, {"中文名称": "文明5", "游戏名称(原名)": "Sid Meier's Civilization V", "appid": 8930, "开发者": "Firaxis/2K", "玩法标签": "策略/回合制/历史", "发行日期": "2010-09-21", "近一年内上线": "否", "安装大小": "4.93GB", "当前在线(8/25)": "10,355", "近一年峰值": "91,363", "峰值日期": "2013-07-20", "独立游戏": "否", "最低配置": "WinVista/Core2Duo 1.8GHz/2GB/256MB显存/8GB", "推荐配置": "四核1.8GHz/4GB/512MB显存/8GB", "品类": "策略/经营"}, {"中文名称": "模拟人生4", "游戏名称(原名)": "The Sims 4", "appid": 1222670, "开发者": "Maxis/EA", "玩法标签": "生活模拟/免费", "发行日期": "2014-09-02", "近一年内上线": "否", "安装大小": "26.14GB", "当前在线(8/25)": "18,930", "近一年峰值": "96,328", "峰值日期": "2022-10-23", "独立游戏": "否", "最低配置": "Win10/i3-3220或R3 1200/4GB/128MB显存/26GB", "推荐配置": "Win10/i5四核/8GB/1GB显存/51GB", "品类": "模拟"}, {"中文名称": "边狱公司", "游戏名称(原名)": "Limbus Company", "appid": 1973530, "开发者": "ProjectMoon", "玩法标签": "回合制RPG/剧情/免费", "发行日期": "2023-02-26", "近一年内上线": "否", "安装大小": "9.71GB", "当前在线(8/25)": "26,453", "近一年峰值": "157,444", "峰值日期": "2026-07-09", "独立游戏": "是(小团队)", "最低配置": "Win10/i5/8GB/GT1030/10GB", "推荐配置": "Win10/i5/8GB/GT1030/10GB", "品类": "独立/休闲Rogue"}, {"中文名称": "无人深空", "游戏名称(原名)": "No Man's Sky", "appid": 275850, "开发者": "Hello Games", "玩法标签": "太空探索/生存/独立", "发行日期": "2016-08-12", "近一年内上线": "否", "安装大小": "15.0GB", "当前在线(8/25)": "0", "近一年峰值": "212,321", "峰值日期": "2016-08", "独立游戏": "是", "最低配置": "Win10/i3/8GB/GTX1060 3GB/15GB", "推荐配置": "", "品类": "生存沙盒"}, {"中文名称": "森林", "游戏名称(原名)": "The Forest", "appid": 242760, "开发者": "Endnight Games", "玩法标签": "生存恐怖/建造/独立", "发行日期": "2018-04-30", "近一年内上线": "否", "安装大小": "5.54GB", "当前在线(8/25)": "0", "近一年峰值": "109,397", "峰值日期": "2024-12-28", "独立游戏": "是", "最低配置": "Win7/双核2.4GHz/4GB/8800GT/5GB", "推荐配置": "Win7/四核/4GB/GTX560/5GB", "品类": "生存沙盒"}], "s4": [{"游戏": "机械狂欢 Machine Party", "appid": 4108000, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "派对/恐怖/合作", "独立游戏": "是", "发行日期": "2026-07-30", "安装大小": "1.35GB", "历史峰值": "22,629", "判定/说明": "🔥 今夏最大黑马，两周破百万销量", "最低配置": "Win11/双核2.4GHz/8GB/RX6500XT或GTX1660/1GB", "推荐配置": ""}, {"游戏": "R.E.P.O.", "appid": 3241660, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "恐怖/合作/物理", "独立游戏": "是", "发行日期": "2025-02-26", "安装大小": "1.39GB", "历史峰值": "271,571", "判定/说明": "🔥 联机恐怖神作，Steam当前1万在线", "最低配置": "Win10/i5-6600/8GB/GTX970/1GB", "推荐配置": "Win11/i7-8700/8GB/GTX1070/1GB"}, {"游戏": "漫威蜘蛛侠2", "appid": 2651280, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "动作/开放世界", "独立游戏": "否", "发行日期": "2025-01-30", "安装大小": "104GB", "历史峰值": "28,189", "判定/说明": "🔥 电影《英雄新纪元》带动，搜索+3.85倍", "最低配置": "Win10/i3-8100/16GB/GTX1650/140GB", "推荐配置": "Win10/i5-8400/16GB/RTX3060/140GB"}, {"游戏": "黑神话悟空", "appid": 2358720, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "动作RPG/魂类", "独立游戏": "否", "发行日期": "2024-08-20", "安装大小": "139.57GB", "历史峰值": "2,415,714", "判定/说明": "🔥 国产3A巅峰，Steam当前2.5万在线", "最低配置": "Win10/i5-8400/16GB/GTX1060 6GB/130GB", "推荐配置": "Win10/i7-9700/16GB/RTX2060/130GB"}, {"游戏": "NBA2K26", "appid": 3472040, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "体育/篮球", "独立游戏": "否", "发行日期": "2025-09-05", "安装大小": "72.23GB", "历史峰值": "52,863", "判定/说明": "🟡 搜索回落但Steam仍热", "最低配置": "Win10/i3-9100/8GB/GTX1060 5GB/110GB", "推荐配置": "Win11/i5-10600/16GB/RTX2070/110GB"}, {"游戏": "欧洲卡车模拟器2", "appid": 227300, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "驾驶/模拟", "独立游戏": "否", "发行日期": "2012-10-18", "安装大小": "35.22GB", "历史峰值": "73,887", "判定/说明": "🟢 长青模拟，当前1.5万在线", "最低配置": "Win10/i5-6400/8GB/GTX660/25GB", "推荐配置": "Win10/i5-9600/12GB/GTX1660/25GB"}, {"游戏": "双人成行", "appid": 1426210, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "合作/解谜", "独立游戏": "否", "发行日期": "2021-03-26", "安装大小": "44.8GB", "历史峰值": "71,039", "判定/说明": "🟢 双人合作标杆", "最低配置": "Win8.1/i3-2100T/8GB/GTX660/50GB", "推荐配置": "Win8.1/i5-3570K/16GB/GTX980/50GB"}, {"游戏": "极限竞速：地平线5", "appid": 1551360, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "竞速/开放世界", "独立游戏": "否", "发行日期": "2021-11-09", "安装大小": "148.23GB", "历史峰值": "81,096", "判定/说明": "🟢 竞速标杆", "最低配置": "Win10/i5-4460/8GB/GTX970/110GB", "推荐配置": "Win10/i5-8400/16GB/GTX1070/110GB"}, {"游戏": "恐龙岛 The Isle", "appid": 376210, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "恐龙生存", "独立游戏": "是", "发行日期": "2015-12-02", "安装大小": "20.7GB", "历史峰值": "27,398", "判定/说明": "🟡 8/23创峰值2.7万，暑期回热", "最低配置": "Win7/四核3GHz/8GB/GTX960/25GB", "推荐配置": "Win10/四核3.4GHz/16GB/GTX1070/25GB"}, {"游戏": "人渣 SCUM", "appid": 513710, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "开放世界生存", "独立游戏": "是", "发行日期": "2025-06-17", "安装大小": "88.76GB", "历史峰值": "68,322", "判定/说明": "🟡 搜索回落但长线玩家", "最低配置": "Win10/i5-4430/16GB/GTX1060 3GB/80GB", "推荐配置": "Win10/i5-6600K/16GB/RTX2060/80GB"}, {"游戏": "漫威蜘蛛侠：迈尔斯", "appid": 1817190, "搜索源": "✅", "鲸云源": "✅", "Steam源": "✅", "玩法标签": "动作/开放世界", "独立游戏": "否", "发行日期": "2022-11-18", "安装大小": "61.6GB", "历史峰值": "13,539", "判定/说明": "🟡 随蜘蛛侠IP热连带", "最低配置": "Win10/i3-4160/8GB/GTX950/75GB", "推荐配置": "Win10/i5-4670/16GB/GTX1060 6GB/75GB"}, {"游戏": "幻兽帕鲁 Palworld", "appid": 1623730, "搜索源": "✅", "鲸云源": "—", "Steam源": "✅", "玩法标签": "开放世界生存/收集", "独立游戏": "是", "发行日期": "2026-07-10(正式)", "安装大小": "38.35GB", "历史峰值": "2,101,867", "判定/说明": "🔥 Steam当前10.7万在线，7/10转正后回热", "最低配置": "Win10/i5-9400F/16GB/GTX1660/40GB", "推荐配置": "Win11/i5-12400/32GB/RTX3060Ti/40GB"}, {"游戏": "渔力全开 How to Fish", "appid": 4001890, "搜索源": "✅", "鲸云源": "—", "Steam源": "✅", "玩法标签": "钓鱼/合作", "独立游戏": "是", "发行日期": "2026-08-20", "安装大小": "0.61GB", "历史峰值": "341,691", "判定/说明": "🔥 8/20上线即爆，当前13.6万在线，本周最大新游", "最低配置": "Win10/i5-5257U/8GB/GTX1050/1GB", "推荐配置": ""}, {"游戏": "Mortal Shell II", "appid": 2584270, "搜索源": "✅", "鲸云源": "—", "Steam源": "✅", "玩法标签": "魂系/动作RPG", "独立游戏": "是", "发行日期": "2026-08-20", "安装大小": "68.07GB", "历史峰值": "44,486", "判定/说明": "🔥 8/20发售，首周峰值4.4万", "最低配置": "Win10/i7-10700K或R5 3600/16GB/RTX2060S/70GB", "推荐配置": ""}, {"游戏": "Big Walk", "appid": 1478500, "搜索源": "✅", "鲸云源": "—", "Steam源": "✅", "玩法标签": "合作解谜/探索", "独立游戏": "是", "发行日期": "2026-08-04", "安装大小": "7.23GB", "历史峰值": "46,409", "判定/说明": "🔥 8/4发售，首周峰值4.6万（鹅作剧工作室）", "最低配置": "Win10/i7-7700K或R5 1600X/12GB/GTX750Ti", "推荐配置": "Win11/i5-10600K/16GB/GTX1070"}, {"游戏": "Fields of Mistria", "appid": 2142790, "搜索源": "✅", "鲸云源": "—", "Steam源": "✅", "玩法标签": "农场模拟/生活", "独立游戏": "是", "发行日期": "2026-08-05", "安装大小": "1.21GB", "历史峰值": "39,233", "判定/说明": "🔥 正式版8/5，首周峰值3.9万", "最低配置": "Win10/E6400/6GB/GTX460/2GB", "推荐配置": "Win10/R3 3300X/8GB/RX480/2GB"}], "category": [{"name": "合作/派对", "count": 10, "peak": 1809245}, {"name": "动作/冒险RPG", "count": 10, "peak": 5500047}, {"name": "策略/经营", "count": 10, "peak": 1627077}, {"name": "生存沙盒", "count": 10, "peak": 1901031}, {"name": "独立/休闲Rogue", "count": 7, "peak": 1440078}, {"name": "其他", "count": 6, "peak": 3650267}, {"name": "竞速", "count": 3, "peak": 431165}, {"name": "模拟", "count": 3, "peak": 306185}, {"name": "格斗", "count": 1, "peak": 72977}], "trend": [{"n": "ROBLOX", "g7": 232589, "g8": 135440}, {"n": "我的世界", "g7": 558094, "g8": 399175}, {"n": "植物大战僵尸", "g7": 303346, "g8": 339423}, {"n": "绝地求生PUBG", "g7": 0, "g8": 0}, {"n": "NBA2K", "g7": 36215, "g8": 23807}, {"n": "欧洲卡车模拟器", "g7": 54131, "g8": 40481}, {"n": "GTA侠盗猎车手", "g7": 0, "g8": 0}, {"n": "恐怖奶奶", "g7": 112651, "g8": 118503}, {"n": "方舟生存进化", "g7": 44357, "g8": 33384}, {"n": "网络天才", "g7": 200684, "g8": 46329}]};
+
+/* ---------- 工具 ---------- */
+function numFmt(n){
+  if(n==null||n==="") return "";
+  if(typeof n==="string") n=parseFloat(String(n).replace(/,/g,""));
+  if(isNaN(n)) return "";
+  return n.toLocaleString("zh-CN");
+}
+function parseNum(v){
+  if(typeof v==="number") return v;
+  if(!v) return 0;
+  const s=String(v).replace(/,/g,"").trim();
+  const m=s.match(/[\d.]+/);
+  return m?parseFloat(m[0]):0;
+}
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+/* ---------- 主题切换 ---------- */
+const themeBtn=document.getElementById("themeBtn");
+themeBtn.addEventListener("click",()=>{
+  const cur=document.body.dataset.theme==="dark"?"light":"dark";
+  document.body.dataset.theme=cur;
+  themeBtn.textContent=cur==="dark"?"☀️ 切换浅色":"🌓 切换深色";
+});
+
+/* ---------- CSS 条形图 ---------- */
+function barChart(elId, rows, max){
+  const el=document.getElementById(elId);
+  const m=max||Math.max(...rows.map(r=>r.v));
+  el.innerHTML=rows.map(r=>{
+    const w=Math.max(2,(r.v/m*100)).toFixed(1);
+    return '<div class="bar-row"><div class="bar-name" title="'+esc(r.n)+'">'+esc(r.n)+'</div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+w+'%"></div></div>'+
+      '<div class="bar-val"><b>'+numFmt(r.v)+'</b>'+(r.u||"")+'</div></div>';
+  }).join("");
+}
+
+const chartSearch = DATA.s1.slice().sort((a,b)=>parseNum(b["总搜索次数(7-8月)"])-parseNum(a["总搜索次数(7-8月)"])).slice(0,15)
+  .map(r=>({n:r["端游名称(中文)"], v:parseNum(r["总搜索次数(7-8月)"])}));
+barChart("chartSearch", chartSearch);
+
+const chartSteam = DATA.s3.slice().sort((a,b)=>parseNum(b["当前在线(8/25)"])-parseNum(a["当前在线(8/25)"])).slice(0,15)
+  .map(r=>({n:r["中文名称"], v:parseNum(r["当前在线(8/25)"])}));
+barChart("chartSteam", chartSteam);
+
+const chartPeak = DATA.s3.slice().sort((a,b)=>parseNum(b["近一年峰值"])-parseNum(a["近一年峰值"])).slice(0,15)
+  .map(r=>({n:r["中文名称"], v:parseNum(r["近一年峰值"])}));
+barChart("chartPeak", chartPeak);
+
+const chartGrowth = DATA.s1.filter(r=>{
+    const s=String(r["8月相对增长"]||"");
+    return /倍/.test(s) && parseNum(r["8月搜索"])>=5000;
+  })
+  .sort((a,b)=>{
+    const ga=parseFloat(String(a["8月相对增长"]).replace("倍",""));
+    const gb=parseFloat(String(b["8月相对增长"]).replace("倍",""));
+    return gb-ga;
+  }).slice(0,12).map(r=>({n:r["端游名称(中文)"], v:parseFloat(String(r["8月相对增长"]).replace("倍","")), u:"×"}));
+barChart("chartGrowth", chartGrowth);
+
+/* ---------- 表格 ---------- */
+function makeTable(elId, cols, rows){
+  const el=document.getElementById(elId);
+  let html='<thead><tr>';
+  cols.forEach(c=>{ html+='<th data-k="'+c.key+'" data-num="'+(c.num?1:0)+'">'+c.label+'<span class="sort-arrow"></span></th>'; });
+  html+='</tr></thead><tbody>';
+  rows.forEach(r=>{
+    html+='<tr>';
+    cols.forEach(c=>{ html+='<td'+(c.num?' class="num"':'')+'>'+r["__"+c.key]+'</td>'; });
+    html+='</tr>';
+  });
+  html+='</tbody>';
+  el.innerHTML=html;
+  el.querySelectorAll("th").forEach(th=>{
+    th.addEventListener("click",()=>{
+      const k=th.dataset.k, isNum=th.dataset.num==="1";
+      const tbody=el.querySelector("tbody");
+      const trs=[...tbody.querySelectorAll("tr")];
+      const asc=!th._asc;
+      th._asc=asc;
+      el.querySelectorAll("th").forEach(x=>x.querySelector(".sort-arrow").textContent="");
+      th.querySelector(".sort-arrow").textContent=asc?" ▲":" ▼";
+      const idx=[...el.querySelectorAll("th")].indexOf(th);
+      trs.sort((a,b)=>{
+        const va=a.children[idx].textContent, vb=b.children[idx].textContent;
+        if(isNum) return (parseNum(va)-parseNum(vb))*(asc?1:-1);
+        return va.localeCompare(vb,"zh-CN")*(asc?1:-1);
+      });
+      trs.forEach(tr=>tbody.appendChild(tr));
+    });
+  });
+}
+
+const fmt4 = {
+  "游戏": v=>'<b>'+esc(v)+'</b>',
+  "appid": v=>esc(v),
+  "搜索源": v=>v==="✅"?'<span class="ok">✓</span>':'<span class="no">—</span>',
+  "鲸云源": v=>v==="✅"?'<span class="ok">✓</span>':'<span class="no">—</span>',
+  "Steam源": v=>v==="✅"?'<span class="ok">✓</span>':'<span class="no">—</span>',
+  "玩法标签": v=>esc(v),
+  "独立游戏": v=>v==="是"?'<span class="ind">独立</span>':'<span class="big">大厂</span>',
+  "发行日期": v=>esc(v),
+  "安装大小": v=>esc(v),
+  "历史峰值": v=>v?numFmt(v):"—",
+  "判定/说明": v=>{
+    const s=esc(v);
+    if(s.includes("🔥")) return '<span class="hot">'+s+'</span>';
+    if(s.includes("🟡")||s.includes("⚠️")) return '<span class="warm">'+s+'</span>';
+    return '<span class="good">'+s+'</span>';
+  },
+  "最低配置": v=>'<div class="cfg">'+esc(v)+'</div>',
+  "推荐配置": v=>v?'<div class="cfg">'+esc(v)+'</div>':'—'
+};
+const cols4 = [
+  {key:"游戏",label:"游戏",num:0},{key:"appid",label:"appid",num:0},
+  {key:"搜索源",label:"搜索源",num:0},{key:"鲸云源",label:"鲸云源",num:0},
+  {key:"Steam源",label:"Steam源",num:0},{key:"玩法标签",label:"玩法标签",num:0},
+  {key:"独立游戏",label:"独立",num:0},{key:"发行日期",label:"发行日期",num:0},
+  {key:"安装大小",label:"安装大小",num:0},{key:"历史峰值",label:"历史峰值",num:1},
+  {key:"判定/说明",label:"判定/说明",num:0},{key:"最低配置",label:"最低配置",num:0},
+  {key:"推荐配置",label:"推荐配置",num:0},
+];
+
+const fmt3 = {
+  "中文名称": v=>'<b>'+esc(v)+'</b>',
+  "游戏名称(原名)": v=>esc(v),
+  "appid": v=>esc(v),
+  "开发者": v=>esc(v),
+  "品类": v=>'<span class="cat-tag">'+esc(v)+'</span>',
+  "玩法标签": v=>esc(v),
+  "发行日期": v=>esc(v),
+  "近一年内上线": v=>v==="是"?'<span class="ind">近一年</span>':'<span class="no">—</span>',
+  "安装大小": v=>esc(v),
+  "当前在线(8/25)": v=>v?numFmt(v):"—",
+  "近一年峰值": v=>v?numFmt(v):"—",
+  "峰值日期": v=>esc(v),
+  "独立游戏": v=>v==="是"||String(v).includes("是")?'<span class="ind">独立</span>':'<span class="big">大厂</span>',
+  "最低配置": v=>'<div class="cfg">'+esc(v)+'</div>',
+  "推荐配置": v=>v?'<div class="cfg">'+esc(v)+'</div>':'—'
+};
+const cols3 = [
+  {key:"中文名称",label:"中文名称",num:0},{key:"游戏名称(原名)",label:"游戏名称(原名)",num:0},
+  {key:"appid",label:"appid",num:0},{key:"开发者",label:"开发者",num:0},
+  {key:"品类",label:"品类",num:0},{key:"玩法标签",label:"玩法标签",num:0},
+  {key:"发行日期",label:"发行日期",num:0},{key:"近一年内上线",label:"近一年上线",num:0},
+  {key:"安装大小",label:"安装大小",num:0},{key:"当前在线(8/25)",label:"当前在线",num:1},
+  {key:"近一年峰值",label:"近一年峰值",num:1},{key:"峰值日期",label:"峰值日期",num:0},
+  {key:"独立游戏",label:"独立",num:0},{key:"最低配置",label:"最低配置",num:0},
+  {key:"推荐配置",label:"推荐配置",num:0},
+];
+
+const fmt2 = {
+  "鲸云游戏名称": v=>'<b>'+esc(v)+'</b>',
+  "游玩人数": v=>numFmt(v),
+  "注册人数": v=>numFmt(v),
+  "Steam对应游戏": v=>esc(v),
+  "appid": v=>esc(v),
+  "备注": v=>esc(v)
+};
+const cols2 = [
+  {key:"鲸云游戏名称",label:"鲸云游戏名称",num:0},{key:"游玩人数",label:"游玩人数",num:1},
+  {key:"注册人数",label:"注册人数",num:1},{key:"Steam对应游戏",label:"Steam对应游戏",num:0},
+  {key:"appid",label:"appid",num:0},{key:"备注",label:"备注",num:0}
+];
+
+const fmt1 = {
+  "端游名称(中文)": v=>'<b>'+esc(v)+'</b>',
+  "总搜索次数(7-8月)": v=>numFmt(v),
+  "7月搜索": v=>numFmt(v),
+  "8月搜索": v=>numFmt(v),
+  "8月相对增长": v=>{
+    const s=String(v);
+    if(s.includes("新词")) return '<span class="hot">'+esc(s)+'</span>';
+    const n=parseFloat(s.replace("倍",""));
+    if(n>=2) return '<span class="hot">'+esc(s)+'</span>';
+    if(n>=1.2) return '<span class="warm">'+esc(s)+'</span>';
+    return esc(s);
+  },
+  "相关性": v=>v==="高"?'<span class="ind">高</span>':'<span class="warm">中</span>'
+};
+const cols1 = [
+  {key:"端游名称(中文)",label:"端游名称(中文)",num:0},
+  {key:"总搜索次数(7-8月)",label:"总搜索次数",num:1},
+  {key:"7月搜索",label:"7月搜索",num:1},{key:"8月搜索",label:"8月搜索",num:1},
+  {key:"8月相对增长",label:"8月相对增幅",num:0},{key:"相关性",label:"相关性",num:0}
+];
+
+function prep(rows, fmt){
+  return rows.map(r=>{
+    const o={};
+    Object.keys(r).forEach(k=>{ o["__"+k]=fmt[k]?fmt[k](r[k]):esc(r[k]); });
+    return o;
+  });
+}
+
+makeTable("tbl4",cols4,prep(DATA.s4,fmt4));
+makeTable("tbl3",cols3,prep(DATA.s3,fmt3));
+makeTable("tbl2",cols2,prep(DATA.s2,fmt2));
+makeTable("tbl1",cols1,prep(DATA.s1,fmt1));
+
+/* ---------- 搜索过滤 ---------- */
+function filterRows(rows, kw, keys){
+  if(!kw) return rows;
+  const k=kw.toLowerCase();
+  return rows.filter(r=>keys.some(key=>String(r[key]==null?"":r[key]).toLowerCase().includes(k)));
+}
+document.getElementById("kw4").addEventListener("input",e=>{
+  makeTable("tbl4",cols4,prep(filterRows(DATA.s4,e.target.value,["游戏","玩法标签","判定/说明"]),fmt4));
+});
+document.getElementById("kw3").addEventListener("input",e=>{
+  const f=document.getElementById("f3").value;
+  let rows=DATA.s3;
+  if(f==="近一年") rows=rows.filter(r=>r["近一年内上线"]==="是");
+  else if(f==="独立") rows=rows.filter(r=>String(r["独立游戏"]).includes("是"));
+  else if(f==="爆款") rows=rows.filter(r=>parseNum(r["近一年峰值"])>=100000);
+  makeTable("tbl3",cols3,prep(filterRows(rows,e.target.value,["中文名称","游戏名称(原名)","开发者","玩法标签","品类"]),fmt3));
+});
+document.getElementById("f3").addEventListener("change",()=>{
+  document.getElementById("kw3").dispatchEvent(new Event("input"));
+});
+document.getElementById("kw2").addEventListener("input",e=>{
+  makeTable("tbl2",cols2,prep(filterRows(DATA.s2,e.target.value,["鲸云游戏名称","Steam对应游戏","备注"]),fmt2));
+});
+document.getElementById("kw1").addEventListener("input",e=>{
+  makeTable("tbl1",cols1,prep(filterRows(DATA.s1,e.target.value,["端游名称(中文)"]),fmt1));
+});
+
+/* ---------- Tab 切换 ---------- */
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    ["1","2","3"].forEach(n=>{
+      document.getElementById("panel"+n).style.display=(n===btn.dataset.tab)?"":"none";
+    });
+  });
+});
+</script>
+</body>
+</html>
