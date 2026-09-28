@@ -16,6 +16,12 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .hero h1{margin:0 0 8px;font-size:26px;letter-spacing:.5px}
 .hero p{margin:0;opacity:.92;font-size:13.5px}
 .chips{margin-top:14px;display:flex;flex-wrap:wrap;gap:8px}
+.hero-links{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:12px}
+.hero-links a{font-family:Consolas,Menlo,monospace;font-size:11.5px;color:#fff;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.38);
+  border-radius:6px;padding:3px 10px;text-decoration:none;word-break:break-all}
+.hero-links a:hover{background:rgba(255,255,255,.28)}
+.hero-links .hlt{opacity:.82}
 .chip{background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.32);
   border-radius:999px;padding:3px 12px;font-size:12px}
 .sec-h{margin:26px 4px 12px;font-size:14px;color:var(--dim);font-weight:700;letter-spacing:.6px}
@@ -34,6 +40,12 @@ body{margin:0;background:var(--bg);color:var(--ink);
 .cta:hover{background:#1740b8}
 .card h3{margin:12px 0 4px;font-size:16px}
 .desc{margin:0 0 12px;color:var(--dim);font-size:13px}
+.short{margin:0 0 12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  font-size:12px;color:var(--dim)}
+.short a{font-family:Consolas,Menlo,monospace;font-size:11.5px;color:var(--blue);
+  background:#eef3ff;border:1px solid #d5e0ff;border-radius:6px;padding:3px 9px;
+  text-decoration:none;word-break:break-all}
+.short a:hover{background:#e2ebff;border-color:#b9ccff}
 .files{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:6px;
   border-top:1px dashed var(--line);padding-top:12px}
 .frow{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;
@@ -59,6 +71,11 @@ body{margin:0;background:var(--bg);color:var(--ink);
       <span class="chip">最新 2026-09-28</span>
       <span class="chip">总 16 个交付文件</span>
     </div>
+    <div class="hero-links">
+      <span>稳定短链</span>
+      <a href="latest/" target="_blank" rel="noopener">https://a13612812330.github.io/endgame-weekly-report/latest/</a>
+      <span class="hlt">永远指向最新一期 · 历史各期短链见下方卡片</span>
+    </div>
   </div>
 
   <div class="sec-h">各期归档（最新在前）</div>
@@ -74,6 +91,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
     </div>
     <h3>9.14 – 9.27 大报告（跨期对比）</h3>
     <p class="desc">跨期对比本期 vs 上期 8.31-9.13；热点固定 12 条（末两条为版号重点、端游转手游独立游戏候选）、Steam 真实主视觉、品类环形图、三源重点表一屏可览；端游搜索 164.96 万次（+1.5%，占全站 18.6%）、鲸云下载 71,795 次（-11.5%）、Steam 58 款</p>
+    <div class="short">🔗 稳定短链（直接打开）<a href="2026-09-28/" target="_blank" rel="noopener">https://a13612812330.github.io/endgame-weekly-report/2026-09-28/</a></div>
     <div class="files"><a class="frow" href="2026-09-28/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5_%E5%A4%A7%E6%8A%A5%E5%91%8A_2026-09-28.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游三源周报_大报告_2026-09-28.xlsx</span><span class="fb">Excel</span><span class="fs">54.2 KB</span></a><a class="frow" href="2026-09-28/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5%E7%9C%8B%E6%9D%BF_9.14-9.27.html" target="_blank" rel="noopener"><span class="fi">📊</span><span class="fn">端游三源周报看板_9.14-9.27.html</span><span class="fb">在线查看</span><span class="fs">624.2 KB</span></a></div>
   </section>
   <section class="card">
@@ -87,6 +105,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
     </div>
     <h3>8.31 – 9.13 大报告</h3>
     <p class="desc">133 款端游 / 162.5 万次搜索、409 款鲸云下载、58 款 Steam，联网采集热点与总结</p>
+    <div class="short">🔗 稳定短链（直接打开）<a href="2026-09-14/" target="_blank" rel="noopener">https://a13612812330.github.io/endgame-weekly-report/2026-09-14/</a></div>
     <div class="files"><a class="frow" href="2026-09-14/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5_%E5%A4%A7%E6%8A%A5%E5%91%8A_2026-09-14.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游三源周报_大报告_2026-09-14.xlsx</span><span class="fb">Excel</span><span class="fs">48.7 KB</span></a><a class="frow" href="2026-09-14/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5%E7%9C%8B%E6%9D%BF_8.31-9.13.html" target="_blank" rel="noopener"><span class="fi">📊</span><span class="fn">端游三源周报看板_8.31-9.13.html</span><span class="fb">在线查看</span><span class="fs">168.5 KB</span></a></div>
   </section>
   <section class="card">
@@ -100,6 +119,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
     </div>
     <h3>8.17 – 8.30 首期周报</h3>
     <p class="desc">搜索源 + 鲸云下载源 + Steam 源 + 三源关联重点表，附可视化看板</p>
+    <div class="short">🔗 稳定短链（直接打开）<a href="2026-08-31/" target="_blank" rel="noopener">https://a13612812330.github.io/endgame-weekly-report/2026-08-31/</a></div>
     <div class="files"><a class="frow" href="2026-08-31/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5_8.17-8.30.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游三源周报_8.17-8.30.xlsx</span><span class="fb">Excel</span><span class="fs">37.5 KB</span></a><a class="frow" href="2026-08-31/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E5%91%A8%E6%8A%A5%E7%9C%8B%E6%9D%BF_8.17-8.30.html" target="_blank" rel="noopener"><span class="fi">📊</span><span class="fn">端游三源周报看板_8.17-8.30.html</span><span class="fb">在线查看</span><span class="fs">109.2 KB</span></a></div>
   </section>
   <section class="card">
@@ -113,6 +133,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
     </div>
     <h3>三源联动看板 v2 增强版</h3>
     <p class="desc">首次产出可视化看板，并导出 4 张源表 CSV + 全量 JSON</p>
+    <div class="short">🔗 稳定短链（直接打开）<a href="2026-08-26/" target="_blank" rel="noopener">https://a13612812330.github.io/endgame-weekly-report/2026-08-26/</a></div>
     <div class="files"><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE_%E5%AF%BC%E5%87%BAv4/%E2%91%A0%E6%90%9C%E7%B4%A2%E5%85%B3%E9%94%AE%E8%AF%8D%E6%BA%90.csv" target="_blank" rel="noopener"><span class="fi">📄</span><span class="fn">①搜索关键词源.csv</span><span class="fb">CSV</span><span class="fs">3.0 KB</span></a><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE_%E5%AF%BC%E5%87%BAv4/%E2%91%A1%E9%B2%B8%E4%BA%91%E6%BA%90.csv" target="_blank" rel="noopener"><span class="fi">📄</span><span class="fn">②鲸云源.csv</span><span class="fb">CSV</span><span class="fs">2.1 KB</span></a><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE_%E5%AF%BC%E5%87%BAv4/%E2%91%A2Steam%E6%BA%90%28%E8%BF%91%E4%B8%80%E5%B9%B4%C2%B760%E6%AC%BE%29.csv" target="_blank" rel="noopener"><span class="fi">📄</span><span class="fn">③Steam源(近一年·60款).csv</span><span class="fb">CSV</span><span class="fs">12.3 KB</span></a><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE_%E5%AF%BC%E5%87%BAv4/%E2%91%A3%E4%B8%89%E6%BA%90%E5%85%B3%E8%81%94%E9%87%8D%E7%82%B9%E8%A1%A8.csv" target="_blank" rel="noopener"><span class="fi">📄</span><span class="fn">④三源关联重点表.csv</span><span class="fb">CSV</span><span class="fs">3.2 KB</span></a><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE_%E5%AF%BC%E5%87%BAv4/%E5%85%A8%E9%83%A8%E6%95%B0%E6%8D%AE.json" target="_blank" rel="noopener"><span class="fi">🗂</span><span class="fn">全部数据.json</span><span class="fb">数据</span><span class="fs">56.3 KB</span></a><a class="frow" href="2026-08-26/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE%E5%8F%AF%E8%A7%86%E5%8C%96%E7%9C%8B%E6%9D%BFv2_%E5%A2%9E%E5%BC%BA%E7%89%88.html" target="_blank" rel="noopener"><span class="fi">📊</span><span class="fn">端游三源数据可视化看板v2_增强版.html</span><span class="fb">在线查看</span><span class="fs">80.9 KB</span></a></div>
   </section>
   <section class="card">
@@ -126,6 +147,7 @@ body{margin:0;background:var(--bg);color:var(--ink);
     </div>
     <h3>7.1 – 8.24 关键词清洗与三源汇总</h3>
     <p class="desc">端游关键词三级匹配清洗、鲸云平台表现、Steam 近一年 60 款、三源关联重点表 v4</p>
+    <div class="short">🗂 本期无看板（仅数据文件）</div>
     <div class="files"><a class="frow" href="2026-08-25/%E6%9A%91%E5%81%87%E7%88%86%E7%81%AB%E6%B8%B8%E6%88%8F%E5%85%B3%E9%94%AE%E8%AF%8D%E8%81%94%E5%90%88%E5%88%86%E6%9E%90_7.1-8.24.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">暑假爆火游戏关键词联合分析_7.1-8.24.xlsx</span><span class="fb">Excel</span><span class="fs">12.6 KB</span></a><a class="frow" href="2026-08-25/%E7%AB%AF%E6%B8%B8%E4%B8%89%E6%BA%90%E6%95%B0%E6%8D%AE%E6%B1%87%E6%80%BBv4_%E5%AE%8C%E6%95%B4%E7%89%88_7.1-8.24.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游三源数据汇总v4_完整版_7.1-8.24.xlsx</span><span class="fb">Excel</span><span class="fs">23.4 KB</span></a><a class="frow" href="2026-08-25/%E7%AB%AF%E6%B8%B8%E5%85%B3%E9%94%AE%E8%AF%8D%E6%B8%85%E6%B4%97%E7%BB%93%E6%9E%9C_2026-07-01%E8%87%B308-25.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游关键词清洗结果_2026-07-01至08-25.xlsx</span><span class="fb">Excel</span><span class="fs">38.0 KB</span></a><a class="frow" href="2026-08-25/%E7%AB%AF%E6%B8%B8%E6%83%85%E5%86%B5%E6%B1%87%E6%80%BB_7.1-8.24.xlsx" target="_blank" rel="noopener"><span class="fi">📗</span><span class="fn">端游情况汇总_7.1-8.24.xlsx</span><span class="fb">Excel</span><span class="fs">15.9 KB</span></a></div>
   </section>
 
