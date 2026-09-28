@@ -118,16 +118,34 @@ svg text{font-family:"Microsoft YaHei",sans-serif}
 .rrow .bar > i{display:block;height:15px;border-radius:3px;transition:width .8s ease}
 .rrow .vl{text-align:right;font-size:11.5px;color:var(--sub);font-variant-numeric:tabular-nums}
 
-/* ===== 吸顶导航 ===== */
-.nav{position:sticky;top:0;z-index:30;margin:0 -24px 18px;padding:0 24px;
-  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line)}
-.nav-in{display:flex;gap:2px;overflow-x:auto;scrollbar-width:none}
-.nav-in::-webkit-scrollbar{display:none}
-.nav a{flex-shrink:0;padding:11px 13px;font-size:12.5px;font-weight:700;color:var(--sub);
-  text-decoration:none;border-bottom:2px solid transparent;transition:.18s;white-space:nowrap}
-.nav a:hover{color:var(--accent2)}
-.nav a.on{color:var(--accent2);border-bottom-color:var(--accent2)}
+/* ===== 右侧悬浮定位条（收起=圆点 / 悬停=展开文字） ===== */
+.rail{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:40;
+  width:34px;overflow:hidden;padding:9px 7px;border-radius:14px;
+  background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:blur(14px);
+  border:1px solid var(--line);box-shadow:0 6px 22px rgba(20,40,90,.14);
+  display:flex;flex-direction:column;gap:2px;
+  transition:width .3s cubic-bezier(.2,.7,.3,1),box-shadow .25s}
+.rail:hover{width:198px;box-shadow:0 10px 30px rgba(20,40,90,.2)}
+.rail a{display:flex;align-items:center;justify-content:flex-end;gap:9px;width:100%;
+  padding:5px 4px;border-radius:9px;text-decoration:none;transition:background .18s}
+.rail a:hover{background:var(--hover)}
+.rail .lb{font-size:11.5px;font-weight:700;color:var(--sub);white-space:nowrap;
+  opacity:0;transition:opacity .2s .05s,color .18s}
+.rail:hover .lb{opacity:1}
+.rail a:hover .lb,.rail a.on .lb{color:var(--accent2)}
+.rail .dt{width:8px;height:8px;border-radius:50%;background:var(--line);flex-shrink:0;
+  transition:background .2s,transform .2s}
+.rail a:hover .dt{background:var(--accent2);transform:scale(1.25)}
+.rail a.on .dt{background:var(--accent);transform:scale(1.55)}
+/* 定位条进度：顶部读数 */
+.rail .rail-hd{display:flex;align-items:center;justify-content:flex-end;gap:8px;
+  padding:0 4px 6px;margin-bottom:5px;border-bottom:1px solid var(--line)}
+.rail .rail-hd .lb{font-size:10.5px;letter-spacing:.6px;color:var(--sub);font-weight:800;opacity:0}
+.rail:hover .rail-hd .lb{opacity:.8}
+.rail .rail-hd .dt{background:var(--accent2);transform:scale(1.1)}
+@media(max-width:1380px){.rail{right:10px}}
+@media(max-width:1180px){.rail:hover{width:180px}}
+@media(max-width:860px){.rail{display:none}}
 
 /* ===== 区块标题装饰 ===== */
 .sec h2::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--accent)}
@@ -188,23 +206,15 @@ svg text{font-family:"Microsoft YaHei",sans-serif}
 .cat-row .cp{text-align:right;font-weight:800;font-size:11.5px;color:var(--accent2);font-variant-numeric:tabular-nums}
 .cat-row .cn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
-/* ===== 三源重点表（紧凑 + 一屏可览） ===== */
-#focus{scroll-margin-top:52px}
-/* 重点表区块：压缩内边距，配合锚点直达实现「一屏看全 27 行」 */
-#focus{padding:14px 16px;scroll-margin-top:52px}
-#focus h2{margin-bottom:6px}
-#focus .hint{font-size:11.5px;color:var(--sub);font-weight:400;margin-left:auto}
-.focus-bar{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
-.focus-bar input{flex:1;min-width:170px;max-width:320px;padding:7px 13px;border:1px solid var(--line);
-  border-radius:9px;background:var(--bg);color:var(--txt);font-size:12.5px;outline:none;
-  font-family:inherit;transition:border .2s}
-.focus-bar input:focus{border-color:var(--accent2)}
+/* ===== 三源重点表（现已并入明细表 Tab1：紧凑 + 一屏可览） ===== */
+/* 锚点偏移：定位条已改为右侧悬浮，不再占用顶部空间 */
+#kpis,#charts,#reson,#hot,#detail,#sumwrap{scroll-margin-top:16px}
 .btn{background:var(--accent);color:#fff;border:0;border-radius:9px;padding:7px 14px;font-size:12.5px;
   font-weight:700;cursor:pointer;font-family:inherit;transition:.2s}
 .btn:hover{filter:brightness(1.1)}
 .btn.ghost{background:var(--card);color:var(--txt);border:1px solid var(--line)}
 .btn.ghost:hover{background:var(--hover);filter:none}
-.focus-stat{margin-left:auto;font-size:11.5px;color:var(--sub);display:flex;gap:12px;flex-wrap:wrap}
+.focus-stat{font-size:11.5px;color:var(--sub);display:flex;gap:12px;flex-wrap:wrap;align-items:center}
 .focus-stat b{color:var(--up)}
 .tbl-compact{overflow-x:auto;overflow-y:visible;max-height:none}
 .tbl-compact table{font-size:11.5px}
@@ -242,16 +252,17 @@ svg text{font-family:"Microsoft YaHei",sans-serif}
     <div class="chips" id="chips"></div>
   </div>
 
-  <!-- 吸顶导航 -->
-  <div class="nav"><div class="nav-in" id="navIn">
-    <a href="#focus">⭐ 三源重点表</a>
-    <a href="#kpis">📊 核心指标</a>
-    <a href="#charts">📈 数据图表</a>
-    <a href="#reson">🔥 三源共振</a>
-    <a href="#hot">🌐 游戏圈热点</a>
-    <a href="#detail">📑 三源明细</a>
-    <a href="#sumwrap">📌 本期总结</a>
-  </div></div>
+  <!-- 右侧悬浮定位条（收起为圆点，悬停展开文字） -->
+  <!-- ⚠️ 顺序必须与页面区块顺序一致，否则滚动高亮(offsetTop 单调性)会错乱 -->
+  <nav class="rail" id="rail">
+    <div class="rail-hd"><span class="lb">定位</span><i class="dt"></i></div>
+    <a href="#kpis"><span class="lb">📊 核心指标</span><i class="dt"></i></a>
+    <a href="#charts"><span class="lb">📈 数据图表</span><i class="dt"></i></a>
+    <a href="#reson"><span class="lb">🔥 三源共振</span><i class="dt"></i></a>
+    <a href="#hot"><span class="lb">🌐 游戏圈热点</span><i class="dt"></i></a>
+    <a href="#detail"><span class="lb">📑 三源明细 · 重点表</span><i class="dt"></i></a>
+    <a href="#sumwrap"><span class="lb">📌 本期总结</span><i class="dt"></i></a>
+  </nav>
 
   <!-- 热点滚动条 -->
   <div class="hot-ticker">
@@ -261,18 +272,6 @@ svg text{font-family:"Microsoft YaHei",sans-serif}
 
   <!-- KPI -->
   <div class="kpis" id="kpis"></div>
-
-  <!-- 三源关联重点表（前移：打开即可见，支持一键全屏看全） -->
-  <div class="sec" id="focus">
-    <h2>⭐ 三源关联重点表 <span class="tag">核心</span>
-      <span class="hint">搜索端跨期环比 × 鲸云下载排名 × Steam 热度交叉验证 · 高亮行为重点爆款</span></h2>
-    <div class="focus-bar">
-      <input id="s4q" placeholder="🔍 搜索游戏名 / 标签 / 说明...">
-      <button class="btn" id="fsBtn">⤢ 全屏查看</button>
-      <div class="focus-stat" id="fsStat"></div>
-    </div>
-    <div class="tbl-wrap tbl-compact" id="s4tbl"></div>
-  </div>
 
   <!-- 图表区 -->
   <div class="charts" id="charts">
@@ -329,13 +328,18 @@ svg text{font-family:"Microsoft YaHei",sans-serif}
     <div class="hot-grid" id="hotGrid"></div>
   </div>
 
-  <!-- 三源明细表 -->
+  <!-- 三源明细表（表一 = 三源关联重点表） -->
   <div class="sec" id="detail">
-    <h2>📑 三源明细表</h2>
-    <div class="desc">点击表头排序 · 输入框过滤 · 涨跌按国内习惯（红涨绿跌）</div>
+    <h2>📑 三源明细表 <span class="tag">核心</span></h2>
+    <div class="desc">表一为三源关联重点表（搜索端跨期环比 × 鲸云下载排名 × Steam 热度交叉验证，高亮行为重点爆款）· 点击表头排序 · 输入框过滤 · 涨跌按国内习惯（红涨绿跌）</div>
     <div class="tabs" id="tabs"></div>
-    <div class="toolbar"><input id="tq" placeholder="🔍 过滤当前表..."></div>
-    <div class="pane active" id="p-s1"><div class="tbl-wrap" id="tbl-s1"></div></div>
+    <div class="toolbar">
+      <input id="tq" placeholder="🔍 过滤当前表...">
+      <button class="btn" id="fsBtn">⤢ 全屏查看</button>
+      <div class="focus-stat" id="fsStat"></div>
+    </div>
+    <div class="pane active" id="p-s4"><div class="tbl-wrap tbl-compact" id="tbl-s4"></div></div>
+    <div class="pane" id="p-s1"><div class="tbl-wrap" id="tbl-s1"></div></div>
     <div class="pane" id="p-s2"><div class="tbl-wrap" id="tbl-s2"></div></div>
     <div class="pane" id="p-s3"><div class="tbl-wrap" id="tbl-s3"></div></div>
   </div>
@@ -709,48 +713,63 @@ function s4Table(rows){
     }).join("") + '</tbody></table>';
 }
 function keyCount(){ return DATA.s4.filter(r=>String(r["判定/说明"]||"").indexOf("🔥")===0).length; }
-function drawS4(q){
+/* 重点表渲染（Tab1）：清空输入框后调用 / 由 renderTable("s4") 统一入口 */
+function renderS4(){
+  const st = STATE.s4 || {q:""};
   let rows = DATA.s4;
-  if(q) rows = rows.filter(r=>JSON.stringify(r).toLowerCase().indexOf(q.toLowerCase()) >= 0);
+  if(st.q) rows = rows.filter(r=>JSON.stringify(r).toLowerCase().indexOf(st.q.toLowerCase()) >= 0);
   // 内联表不额外加统计行（计数已在工具条 focus-stat 中），保证 27 行能压进一屏
-  $("s4tbl").innerHTML = s4Table(rows);
+  $("tbl-s4").innerHTML = s4Table(rows);
   $("fsTbl").innerHTML = s4Table(rows) + '<div class="cnt">共 '+rows.length+' 款 · 悬停单元格看全文</div>';
   $("fsSp").textContent = '全 ' + DATA.s4.length + ' 款 · 当前显示 ' + rows.length + ' 款';
   $("fsStat").innerHTML = '<span>共 <b>' + DATA.s4.length + '</b> 款</span>' +
     '<span>🔥 重点 <b>' + keyCount() + '</b> 款</span>' +
-    (q ? '<span>筛出 <b>' + rows.length + '</b> 款</span>' : '');
+    (st.q ? '<span>筛出 <b>' + rows.length + '</b> 款</span>' : '');
 }
-$("s4q").oninput = e => drawS4(e.target.value.trim());
 /* 全屏：一屏看全 27 行 */
 $("fsBtn").onclick = () => { $("fsOv").classList.add("on"); $("fsClose").focus(); };
 $("fsClose").onclick = () => { $("fsOv").classList.remove("on"); };
 document.addEventListener("keydown", e => { if(e.key === "Escape") $("fsOv").classList.remove("on"); });
 
-/* 吸顶导航：滚动高亮 */
+/* 右侧悬浮定位条：滚动高亮 */
 (function(){
-  const links = [].slice.call(document.querySelectorAll("#navIn a"));
+  const links = [].slice.call(document.querySelectorAll("#rail a"));
   const secs = links.map(a=>document.querySelector(a.getAttribute("href")));
   function spy(){
-    const y = (window.pageYOffset || 0) + 130;
-    let cur = 0;
+    const y = (window.pageYOffset || 0) + 140;
+    let cur = -1;                                   // 未进入任何区块 → 不高亮（避免顶部长亮第一项）
     secs.forEach((s,i)=>{ if(s && (s.offsetTop || 0) <= y) cur = i; });
+    // 滚到底时锁定最后一项（末块高度不足时其 offsetTop 可能永远到不了）
+    if((window.innerHeight + (window.pageYOffset || 0)) >= (document.documentElement.scrollHeight || 0) - 4)
+      cur = links.length - 1;
     links.forEach((a,i)=>a.classList.toggle("on", i === cur));
   }
   window.addEventListener("scroll", spy, {passive:true});
   spy();
 })();
 
-/* 三源明细表 */
+/* 三源明细表（表一 = 三源关联重点表，列定义复用上方 S4_COLS） */
 const TABLES = {
+  s4: {cols: S4_COLS, num:[], label:"⭐ 三源关联重点表"},
   s1: {cols: DATA.KW.s1, num:[1,2,3,5], label:"① 搜索关键词源"},
   s2: {cols: DATA.KW.s2, num:[1,2,3],   label:"② 鲸云源"},
   s3: {cols: DATA.KW.s3, num:[9,10,11], label:"③ Steam源"},
 };
-const SORT = {s1:{k:1,d:-1}, s2:{k:1,d:-1}, s3:{k:9,d:-1}};
-const STATE = {s1:{q:""}, s2:{q:""}, s3:{q:""}};
+/* 重点表不支持排序（值形如「第8(9,858)」，排序无意义），保持源次序 */
+const SORT = {s4:null, s1:{k:1,d:-1}, s2:{k:1,d:-1}, s3:{k:9,d:-1}};
+const STATE = {s4:{q:""}, s1:{q:""}, s2:{q:""}, s3:{q:""}};
+const TAB_ORDER = ["s4","s1","s2","s3"];
 
-$("tabs").innerHTML = ["s1","s2","s3"].map((k,i)=>
+$("tabs").innerHTML = TAB_ORDER.map((k,i)=>
   '<div class="tab ' + (i===0?'active':'') + '" data-t="' + k + '">' + TABLES[k].label + '（' + DATA[k].length + '）</div>').join("");
+
+/* 全屏按钮 / 统计只在重点表 Tab 显示 */
+function syncFsTools(){
+  const cur = document.querySelector("#tabs .tab.active").dataset.t;
+  const on = (cur === "s4");
+  $("fsBtn").style.display = on ? "" : "none";
+  $("fsStat").style.display = on ? "" : "none";
+}
 
 function cellRender(c, v, isNum){
   if(isNum && v!=="" && v!=null && !isNaN(parseFloat(String(v).replace(/,/g,""))))
@@ -769,6 +788,7 @@ function cellRender(c, v, isNum){
 }
 
 function renderTable(key){
+  if(key === "s4"){ renderS4(); return; }        // 重点表走专用渲染（列型特殊）
   const cfg = TABLES[key], st = STATE[key];
   let rows = DATA[key].filter(r=>!st.q || JSON.stringify(r).toLowerCase().indexOf(st.q.toLowerCase())>=0);
   if(SORT[key]) rows = rows.slice().sort((a,b)=>{
@@ -807,6 +827,7 @@ document.querySelectorAll("#tabs .tab").forEach(t=>t.onclick=()=>{
   document.querySelectorAll(".pane").forEach(p=>p.classList.remove("active"));
   $("p-"+t.dataset.t).classList.add("active");
   $("tq").value = ""; STATE[t.dataset.t] = {q:""};
+  syncFsTools();
   renderTable(t.dataset.t);
 });
 $("tq").oninput = e => {
@@ -830,8 +851,9 @@ $("tq").oninput = e => {
 })();
 
 /* init */
-drawRank(); drawCmp(); drawDl(); drawDaily(); drawSteam(); drawCat(); drawS4("");
-renderTable("s1"); renderTable("s2"); renderTable("s3");
+drawRank(); drawCmp(); drawDl(); drawDaily(); drawSteam(); drawCat();
+syncFsTools();
+TAB_ORDER.forEach(renderTable);
 </script>
 </body>
 </html>
